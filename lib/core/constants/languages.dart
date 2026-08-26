@@ -38,29 +38,18 @@ class _RuFlagSmall extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: size * 1.4,
-      height: size,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.10),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          'РУ',
-          style: TextStyle(
-            fontSize: size * 0.5,
-            fontWeight: FontWeight.w800,
-            color: const Color(0xFF2D2D2D),
-            letterSpacing: 0.3,
-          ),
+    return Image.asset(
+      'assets/flag_ru.png',
+      width: size * 1.6,
+      height: size * 1.1,
+      fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => Text(
+        'РУ',
+        style: TextStyle(
+          fontSize: size * 0.5,
+          fontWeight: FontWeight.w800,
+          color: const Color(0xFF2D2D2D),
+          letterSpacing: 0.3,
         ),
       ),
     );

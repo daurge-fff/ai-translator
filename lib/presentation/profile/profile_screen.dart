@@ -16,6 +16,23 @@ import '../admin/admin_screen.dart';
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
+  Widget _avatarLetter(UserProfile user, Color accent) {
+    return Container(
+      color: accent,
+      alignment: Alignment.center,
+      child: Text(
+        user.displayName.isNotEmpty
+            ? user.displayName[0].toUpperCase()
+            : '?',
+        style: const TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authProvider);
@@ -482,83 +499,6 @@ class ProfileScreen extends ConsumerWidget {
                     }
                   }
                 },
-              ),
-              const SizedBox(height: 120),
-            ],
-          ),
-        ),
-    );
-  }
-
-class _RuFlag extends StatelessWidget {
-  const _RuFlag();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 28,
-      height: 20,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(3),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 3,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(3),
-        child: CustomPaint(
-          painter: _WavingFlagPainter(),
-          child: const Center(
-            child: Text(
-              'РУ',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF2D2D2D),
-                letterSpacing: 0.5,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _WavingFlagPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Colors.white,
-          Colors.grey.shade100,
-        ],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
-
-    final path = Path()
-      ..moveTo(0, 0)
-      ..quadraticBezierTo(size.width * 0.25, size.height * 0.15, size.width * 0.5, 0)
-      ..quadraticBezierTo(size.width * 0.75, size.height * -0.15, size.width, 0)
-      ..lineTo(size.width, size.height)
-      ..quadraticBezierTo(size.width * 0.75, size.height * 0.85, size.width * 0.5, size.height)
-      ..quadraticBezierTo(size.width * 0.25, size.height * 1.15, 0, size.height)
-      ..close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-                },
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -594,20 +534,21 @@ class _WavingFlagPainter extends CustomPainter {
         ),
     );
   }
+}
 
-  Widget _avatarLetter(UserProfile user, Color accent) {
-    return Container(
-      color: accent,
-      alignment: Alignment.center,
-      child: Text(
-        user.displayName.isNotEmpty
-            ? user.displayName[0].toUpperCase()
-            : '?',
-        style: const TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
+class _RuFlag extends StatelessWidget {
+  const _RuFlag();
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      'assets/flag_ru.png',
+      width: 36,
+      height: 26,
+      fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => const Text(
+        '🇷🇺',
+        style: TextStyle(fontSize: 20),
       ),
     );
   }

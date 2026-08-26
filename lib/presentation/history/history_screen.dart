@@ -8,6 +8,7 @@ import '../../core/constants/languages.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/liquid_glass.dart';
 import '../../data/local/database.dart';
+import '../../providers/contexts_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/translation_provider.dart';
 
@@ -65,8 +66,17 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   Widget build(BuildContext context) {
     final db = ref.watch(databaseProvider);
     final themeState = ref.watch(themeProvider);
+    final contexts = ref.watch(contextsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = themeState.accentColor.color;
+
+    String contextTitle(String? userContext) {
+      if (userContext == null || userContext.isEmpty) return '';
+      for (final c in contexts) {
+        if (c.contextText == userContext) return c.title;
+      }
+      return userContext;
+    }
 
     return Scaffold(
       body: Padding(
@@ -283,7 +293,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                             borderRadius: BorderRadius.circular(10),
                                           ),
                                           child: Text(
-                                            item.userContext!,
+                                            contextTitle(item.userContext),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
