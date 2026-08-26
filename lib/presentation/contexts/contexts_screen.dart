@@ -24,7 +24,7 @@ class ContextsScreen extends ConsumerWidget {
     return Scaffold(
       body: Padding(
         padding: EdgeInsets.fromLTRB(
-            20, MediaQuery.of(context).padding.top + 8, 20, 0),
+            20, MediaQuery.of(context).padding.top + 4, 20, 0),
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

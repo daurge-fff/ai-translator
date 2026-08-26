@@ -33,7 +33,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(viewportFraction: 0.9, initialPage: 500);
+    _pageController = PageController(viewportFraction: 0.88, initialPage: 500);
     _blobController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 8),
@@ -69,115 +69,116 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
       body: Stack(
         children: [
           // Animated gradient background with floating blobs
-          _AnimatedBackground(
-            blobController: _blobController,
-            isDark: isDark,
-            accent: accent,
+          Positioned.fill(
+            child: _AnimatedBackground(
+              blobController: _blobController,
+              isDark: isDark,
+              accent: accent,
+            ),
           ),
 
           // Main content
-          SafeArea(
-            child: FadeTransition(
-              opacity: _fadeIn,
-              child: Center(
-                child: SingleChildScrollView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Header block (hero + title) — padded
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _HeroIcon(
-                              accent: accent,
-                              isDark: isDark,
-                              pulse: _pulseController,
+          FadeTransition(
+            opacity: _fadeIn,
+            child: Center(
+              child: SingleChildScrollView(
+                physics: const NeverScrollableScrollPhysics(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(height: MediaQuery.of(context).padding.top + 10),
+                    // Header block (hero + title) — padded
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _HeroIcon(
+                            accent: accent,
+                            isDark: isDark,
+                            pulse: _pulseController,
+                          ),
+                          const SizedBox(height: 18),
+                          Text(
+                            'Contextual\nTranslator',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 34,
+                              fontWeight: FontWeight.w800,
+                              height: 1.1,
+                              letterSpacing: -0.5,
+                              color: isDark
+                                  ? AppColors.darkTextPrimary
+                                  : AppColors.lightTextPrimary,
                             ),
-                            const SizedBox(height: 18),
-                            Text(
-                              'Contextual\nTranslator',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 34,
-                                fontWeight: FontWeight.w800,
-                                height: 1.1,
-                                letterSpacing: -0.5,
-                                color: isDark
-                                    ? AppColors.darkTextPrimary
-                                    : AppColors.lightTextPrimary,
-                              ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            context.l.appTagline,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w400,
+                              color: isDark
+                                  ? AppColors.darkTextSecondary
+                                  : AppColors.lightTextSecondary,
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              context.l.appTagline,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w400,
-                                color: isDark
-                                    ? AppColors.darkTextSecondary
-                                    : AppColors.lightTextSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 26),
+                    ),
+                    const SizedBox(height: 26),
 
-                      // Feature cards carousel — full-bleed to the screen edges
-                      _FeatureCarousel(
-                        pageController: _pageController,
-                        currentPage: _currentPage,
-                        onPageChanged: (i) =>
-                            setState(() => _currentPage = i),
-                        accent: accent,
-                        isDark: isDark,
-                        pulse: _pulseController,
-                      ),
-                      const SizedBox(height: 14),
+                    // Feature cards carousel — full-bleed to the screen edges
+                    _FeatureCarousel(
+                      pageController: _pageController,
+                      currentPage: _currentPage,
+                      onPageChanged: (i) =>
+                          setState(() => _currentPage = i),
+                      accent: accent,
+                      isDark: isDark,
+                      pulse: _pulseController,
+                    ),
+                    const SizedBox(height: 14),
 
-                      // Footer block (indicators + button) — padded
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _PageIndicators(
-                              count: 3,
-                              currentPage: _currentPage % 3,
-                              accent: accent,
-                            ),
-                            const SizedBox(height: 32),
-                            _GoogleSignInButton(
-                              isSigningIn: _isSigningIn,
-                              onPressed: () async {
-                                setState(() => _isSigningIn = true);
-                                final error = await ref
-                                    .read(authProvider.notifier)
-                                    .signInWithGoogle();
-                                if (!context.mounted) return;
-                                setState(() => _isSigningIn = false);
-                                if (error != null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        '${context.l.signInFailed}\n$error',
-                                      ),
-                                      duration: const Duration(seconds: 4),
+                    // Footer block (indicators + button) — padded
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _PageIndicators(
+                            count: 3,
+                            currentPage: _currentPage % 3,
+                            accent: accent,
+                          ),
+                          const SizedBox(height: 32),
+                          _GoogleSignInButton(
+                            isSigningIn: _isSigningIn,
+                            onPressed: () async {
+                              setState(() => _isSigningIn = true);
+                              final error = await ref
+                                  .read(authProvider.notifier)
+                                  .signInWithGoogle();
+                              if (!context.mounted) return;
+                              setState(() => _isSigningIn = false);
+                              if (error != null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '${context.l.signInFailed}\n$error',
                                     ),
-                                  );
-                                }
-                              },
-                            ),
-                          ],
-                        ),
+                                    duration: const Duration(seconds: 4),
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
+                    ),
+                    SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
+                  ],
                 ),
               ),
             ),
@@ -424,7 +425,7 @@ class _FeatureCarousel extends StatelessWidget {
     final features = _buildFeatures(context.l);
     final featureCount = features.length;
     return SizedBox(
-      height: 216,
+      height: 230,
       child: PageView.builder(
         controller: pageController,
         onPageChanged: onPageChanged,
@@ -434,7 +435,7 @@ class _FeatureCarousel extends StatelessWidget {
           final isActive = (index % featureCount) ==
               (currentPage % featureCount);
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             child: AnimatedBuilder(
               animation: pulse,
               builder: (context, child) => Transform.scale(
@@ -447,7 +448,6 @@ class _FeatureCarousel extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Glass icon container
                     AnimatedBuilder(
                       animation: pulse,
                       builder: (context, child) => Container(

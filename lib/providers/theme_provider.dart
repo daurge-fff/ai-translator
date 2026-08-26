@@ -2,11 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum BrandAccentColor {
-  blue(Color(0xFF007AFF), 'Синий Apple'),
-  indigo(Color(0xFF5856D6), 'Индиго'),
-  purple(Color(0xFFAF52DE), 'Фиолетовый'),
-  teal(Color(0xFF30B0C7), 'Бирюзовый'),
-  rose(Color(0xFFFF2D55), 'Розовый');
+  blue(Color(0xFF007AFF), 'Blue'),
+  indigo(Color(0xFF5856D6), 'Indigo'),
+  purple(Color(0xFFAF52DE), 'Purple'),
+  teal(Color(0xFF30B0C7), 'Teal'),
+  rose(Color(0xFFFF2D55), 'Rose'),
+  orange(Color(0xFFFF9500), 'Orange'),
+  green(Color(0xFF34C759), 'Green'),
+  cyan(Color(0xFF00C7BE), 'Cyan'),
+  pink(Color(0xFFFF6B9D), 'Pink'),
+  amber(Color(0xFFFFCC02), 'Amber'),
+  red(Color(0xFFFF3B30), 'Red'),
+  mint(Color(0xFF00D68F), 'Mint');
 
   final Color color;
   final String label;

@@ -201,32 +201,33 @@ class _LiquidGlassNavigationBarState
             metrics.height - metrics.indicatorVerticalInset * 2;
 
         return Stack(
+          clipBehavior: Clip.none,
           children: [
-            AnimatedBuilder(
-              animation: _slideController,
-              builder: (context, _) {
-                final index = _currentIndexValue
-                    .clamp(0.0, (count - 1).toDouble());
-                final maxLeft = constraints.maxWidth -
-                    indicatorWidth -
-                    metrics.indicatorHorizontalInset;
-                final rawLeft =
-                    index * itemWidth + metrics.indicatorHorizontalInset;
-                final left = rawLeft
-                    .clamp(metrics.indicatorHorizontalInset, maxLeft)
-                    .toDouble();
-                return Positioned(
-                  left: left,
-                  top: metrics.indicatorVerticalInset,
-                  width: indicatorWidth,
-                  height: indicatorHeight,
-                  child: _SelectedIndicator(
-                    radius: metrics.radius,
-                    accent: accent,
-                    isDark: isDark,
-                  ),
-                );
-              },
+            ExcludeSemantics(
+              child: AnimatedBuilder(
+                animation: _slideController,
+                builder: (context, _) {
+                  final index = _currentIndexValue
+                      .clamp(0.0, (count - 1).toDouble());
+                  final maxLeft = constraints.maxWidth -
+                      indicatorWidth -
+                      metrics.indicatorHorizontalInset;
+                  final rawLeft =
+                      index * itemWidth + metrics.indicatorHorizontalInset;
+                  final left = rawLeft
+                      .clamp(metrics.indicatorHorizontalInset, maxLeft)
+                      .toDouble();
+                  return Positioned(
+                    left: left,
+                    top: metrics.indicatorVerticalInset,
+                    width: indicatorWidth,
+                    height: indicatorHeight,
+                    child: _SelectedIndicator(
+                      radius: metrics.radius,
+                    ),
+                  );
+                },
+              ),
             ),
             Row(
               children: List.generate(count, (index) {
@@ -324,24 +325,25 @@ class _SpecularHighlight extends StatelessWidget {
 
 class _SelectedIndicator extends StatelessWidget {
   final double radius;
-  final Color accent;
-  final bool isDark;
 
   const _SelectedIndicator({
     required this.radius,
-    required this.accent,
-    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
     final innerRadius = math.max(radius - 6, 20.0);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(innerRadius),
-        color: accent.withValues(alpha: isDark ? 0.22 : 0.16),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.10)
+            : Colors.black.withValues(alpha: 0.06),
         border: Border.all(
-          color: accent.withValues(alpha: isDark ? 0.28 : 0.18),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.08)
+              : Colors.black.withValues(alpha: 0.05),
           width: 0.8,
         ),
       ),

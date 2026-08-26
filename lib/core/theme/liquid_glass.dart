@@ -98,7 +98,7 @@ class LiquidGlassEffect extends ConsumerWidget {
           width: 1.0,
         ),
       ),
-      child: Material(color: Colors.transparent, child: child),
+      child: child,
     );
 
     if (disableGlass) {
@@ -106,28 +106,26 @@ class LiquidGlassEffect extends ConsumerWidget {
     }
 
     // Specular rim – bright edge gradient mimicking Apple's glass reflection
-    Widget glassWidget = RepaintBoundary(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(radius),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                stops: const [0.0, 0.3, 0.7, 1.0],
-                colors: [
-                  specularColor.withValues(alpha: 0.12),
-                  Colors.transparent,
-                  Colors.transparent,
-                  specularColor.withValues(alpha: 0.06),
-                ],
-              ),
+    Widget glassWidget = ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(radius),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              stops: const [0.0, 0.3, 0.7, 1.0],
+              colors: [
+                specularColor.withValues(alpha: 0.12),
+                Colors.transparent,
+                Colors.transparent,
+                specularColor.withValues(alpha: 0.06),
+              ],
             ),
-            child: content,
           ),
+          child: content,
         ),
       ),
     );

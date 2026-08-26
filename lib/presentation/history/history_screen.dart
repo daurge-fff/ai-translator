@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../core/l10n/app_strings.dart';
+import '../../core/constants/languages.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/liquid_glass.dart';
 import '../../data/local/database.dart';
@@ -70,7 +71,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     return Scaffold(
       body: Padding(
         padding: EdgeInsets.fromLTRB(
-            20, MediaQuery.of(context).padding.top + 8, 20, 0),
+            20, MediaQuery.of(context).padding.top + 4, 20, 0),
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -95,43 +96,61 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               const SizedBox(height: 12),
 
               // Search field
-              Container(
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(24),
+              TextField(
+                controller: _searchController,
+                onChanged: (v) =>
+                    setState(() => _query = v.trim().toLowerCase()),
+                style: TextStyle(
+                  fontSize: 15,
+                  color:
+                      isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
                 ),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: (v) =>
-                      setState(() => _query = v.trim().toLowerCase()),
-                  style: TextStyle(
+                cursorColor: accent,
+                decoration: InputDecoration(
+                  hintText: context.l.historySearchHint,
+                  hintStyle: TextStyle(
+                    color: isDark ? Colors.white38 : Colors.black38,
                     fontSize: 15,
-                    color:
-                        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
                   ),
-                  decoration: InputDecoration(
-                    hintText: context.l.historySearchHint,
-                    hintStyle: TextStyle(
-                      color: isDark ? Colors.white38 : Colors.black38,
-                    ),
-                    prefixIcon: Icon(
-                      CupertinoIcons.search,
-                      size: 18,
-                      color: isDark ? Colors.white38 : Colors.black38,
-                    ),
-                    suffixIcon: _query.isNotEmpty
-                        ? GestureDetector(
+                  filled: true,
+                  fillColor: isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.05),
+                  prefixIcon: const Padding(
+                    padding: EdgeInsets.only(left: 14, right: 8),
+                    child: Icon(CupertinoIcons.search, size: 18, color: Colors.grey),
+                  ),
+                  prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+                  suffixIcon: _query.isNotEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: GestureDetector(
                             onTap: () {
                               _searchController.clear();
                               setState(() => _query = '');
                             },
                             child: const Icon(CupertinoIcons.xmark_circle_fill,
                                 size: 18, color: Colors.grey),
-                          )
-                        : null,
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    border: InputBorder.none,
+                          ),
+                        )
+                      : null,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide.none,
+                  ),
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide.none,
                   ),
                 ),
               ),
@@ -186,6 +205,13 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                       itemBuilder: (context, index) {
                         final item = items[index];
 
+                        String flagFor(String langName) {
+                          for (final l in WorldLanguages.list) {
+                            if (l.name == langName) return l.flag;
+                          }
+                          return '';
+                        }
+
                         return Dismissible(
                           key: ValueKey(item.id),
                           direction: DismissDirection.endToStart,
@@ -206,14 +232,50 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                 Row(
                                   children: [
                                     Text(
-                                      '${item.sourceLang} → ${item.targetLang}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: accent,
+                                      flagFor(item.sourceLang),
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Flexible(
+                                      child: Text(
+                                        item.sourceLang,
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: accent,
+                                        ),
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                                      child: Text(
+                                        '→',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: isDark ? Colors.white38 : Colors.black38,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      flagFor(item.targetLang),
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Flexible(
+                                      child: Text(
+                                        item.targetLang,
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: accent,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
                                     if (item.userContext != null &&
                                         item.userContext!.isNotEmpty)
                                       Flexible(

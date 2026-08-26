@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../core/l10n/app_strings.dart';
+import '../../core/constants/languages.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/liquid_glass.dart';
 import '../../providers/translation_provider.dart';
@@ -168,6 +169,13 @@ class _TranslateScreenState extends ConsumerState<TranslateScreen> {
       return langName;
     }
 
+    String langFlag(String langName) {
+      for (final l in WorldLanguages.list) {
+        if (l.name == langName || l.displayName(isRu) == langName) return l.flag;
+      }
+      return '';
+    }
+
     return Scaffold(
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
@@ -176,7 +184,7 @@ class _TranslateScreenState extends ConsumerState<TranslateScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.fromLTRB(
-                  20, MediaQuery.of(context).padding.top + 16, 20, 12),
+                  20, MediaQuery.of(context).padding.top + 4, 20, 12),
                 child: Column(
                   children: [
                     // Title Bar
@@ -215,57 +223,85 @@ class _TranslateScreenState extends ConsumerState<TranslateScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            // Source Language Button (allows Auto Detect)
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () => _openLanguagePicker(false),
-                                behavior: HitTestBehavior.opaque,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      displayLang(trState.sourceLang),
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    const Icon(CupertinoIcons.chevron_down, size: 14, color: Colors.grey),
-                                  ],
+                    // Source Language Button (allows Auto Detect)
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => _openLanguagePicker(false),
+                        behavior: HitTestBehavior.opaque,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (trState.sourceLang != 'Автоопределение' &&
+                                trState.sourceLang != 'Auto Detect')
+                              Padding(
+                                padding: const EdgeInsets.only(right: 4),
+                                child: Text(
+                                  langFlag(trState.sourceLang),
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              ),
+                            Flexible(
+                              child: Text(
+                                displayLang(trState.sourceLang),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
+                            const SizedBox(width: 2),
+                            const Icon(CupertinoIcons.chevron_down, size: 11, color: Colors.grey),
+                          ],
+                        ),
+                      ),
+                    ),
 
-                            // Swap Languages Button
-                            IconButton(
-                              icon: const Icon(CupertinoIcons.arrow_right_arrow_left, size: 18),
-                              color: AppColors.primaryBlue,
-                              onPressed: () => trNotifier.swapLanguages(),
+                    // Swap Languages Button
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: GestureDetector(
+                        onTap: () => trNotifier.swapLanguages(),
+                        child: const Icon(CupertinoIcons.arrow_right_arrow_left, size: 14, color: AppColors.primaryBlue),
+                      ),
+                    ),
+
+                    // Target Language Button (excludes Auto Detect)
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => _openLanguagePicker(true),
+                        behavior: HitTestBehavior.opaque,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: Text(
+                                langFlag(trState.targetLang),
+                                style: const TextStyle(fontSize: 14),
+                              ),
                             ),
-
-                            // Target Language Button (excludes Auto Detect)
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () => _openLanguagePicker(true),
-                                behavior: HitTestBehavior.opaque,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      displayLang(trState.targetLang),
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.primaryBlue,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    const Icon(CupertinoIcons.chevron_down, size: 14, color: AppColors.primaryBlue),
-                                  ],
+                            Flexible(
+                              child: Text(
+                                displayLang(trState.targetLang),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primaryBlue,
                                 ),
                               ),
                             ),
+                            const SizedBox(width: 2),
+                            const Icon(CupertinoIcons.chevron_down, size: 11, color: AppColors.primaryBlue),
+                          ],
+                        ),
+                      ),
+                    ),
                           ],
                         ),
                       ),

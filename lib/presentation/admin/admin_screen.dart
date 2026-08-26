@@ -386,6 +386,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
       body: Column(
         children: [
           _buildHeader(context, isDark, accent),
+          const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
             child: Row(

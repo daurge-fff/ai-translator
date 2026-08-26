@@ -23,15 +23,34 @@ class ProfileScreen extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = themeState.accentColor.color;
 
+    Widget panel({required Widget child, EdgeInsetsGeometry? padding, double borderRadius = 28}) {
+      return Container(
+        width: double.infinity,
+        padding: padding ?? const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(borderRadius),
+          color: isDark
+              ? const Color(0xFF1E1E2C).withValues(alpha: themeState.glassOpacity)
+              : Colors.white.withValues(alpha: themeState.glassOpacity),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.15)
+                : Colors.white.withValues(alpha: 0.55),
+            width: 1,
+          ),
+        ),
+        child: child,
+      );
+    }
+
     return Scaffold(
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: EdgeInsets.fromLTRB(
-            20, MediaQuery.of(context).padding.top + 8, 20, 0),
+            20, MediaQuery.of(context).padding.top + 4, 20, 0),
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title + sign-out
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -65,7 +84,7 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(height: 20),
 
               // User Info Card
-              LiquidGlassPanel(
+              panel(
                 borderRadius: 24,
                 child: Row(
                   children: [
@@ -112,8 +131,7 @@ class ProfileScreen extends ConsumerWidget {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: AppColors.danger.withValues(
-                                        alpha: 0.12),
+                                    color: AppColors.danger.withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: const Text(
@@ -161,42 +179,37 @@ class ProfileScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              LiquidGlassPanel(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              panel(
+                child: Row(
                   children: [
-                    Row(
-                      children: [
-                        _ThemeCard(
-                          mode: ThemeMode.light,
-                          current: themeState.themeMode,
-                          accent: accent,
-                          isDark: isDark,
-                          onTap: () => ref
-                              .read(themeProvider.notifier)
-                              .setThemeMode(ThemeMode.light),
-                        ),
-                        const SizedBox(width: 10),
-                        _ThemeCard(
-                          mode: ThemeMode.dark,
-                          current: themeState.themeMode,
-                          accent: accent,
-                          isDark: isDark,
-                          onTap: () => ref
-                              .read(themeProvider.notifier)
-                              .setThemeMode(ThemeMode.dark),
-                        ),
-                      ],
+                    _ThemeChip(
+                      mode: ThemeMode.light,
+                      current: themeState.themeMode,
+                      accent: accent,
+                      isDark: isDark,
+                      label: context.l.light,
+                      icon: CupertinoIcons.sun_max_fill,
+                      onTap: () => ref.read(themeProvider.notifier).setThemeMode(ThemeMode.light),
                     ),
-                    const SizedBox(height: 10),
-                    _ThemeCard(
+                    const SizedBox(width: 10),
+                    _ThemeChip(
+                      mode: ThemeMode.dark,
+                      current: themeState.themeMode,
+                      accent: accent,
+                      isDark: isDark,
+                      label: context.l.dark,
+                      icon: CupertinoIcons.moon_fill,
+                      onTap: () => ref.read(themeProvider.notifier).setThemeMode(ThemeMode.dark),
+                    ),
+                    const SizedBox(width: 10),
+                    _ThemeChip(
                       mode: ThemeMode.system,
                       current: themeState.themeMode,
                       accent: accent,
                       isDark: isDark,
-                      onTap: () => ref
-                          .read(themeProvider.notifier)
-                          .setThemeMode(ThemeMode.system),
+                      label: context.l.system,
+                      icon: CupertinoIcons.circle_lefthalf_fill,
+                      onTap: () => ref.read(themeProvider.notifier).setThemeMode(ThemeMode.system),
                     ),
                   ],
                 ),
@@ -216,7 +229,7 @@ class ProfileScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              LiquidGlassPanel(
+              panel(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: SizedBox(
                   height: 36,
@@ -229,9 +242,7 @@ class ProfileScreen extends ConsumerWidget {
                       final selected = themeState.accentColor == col;
                       return GestureDetector(
                         onTap: () {
-                          ref
-                              .read(themeProvider.notifier)
-                              .setAccentColor(col);
+                          ref.read(themeProvider.notifier).setAccentColor(col);
                         },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
@@ -242,16 +253,13 @@ class ProfileScreen extends ConsumerWidget {
                             color: col.color,
                             border: Border.all(
                               color: selected
-                                  ? (isDark
-                                      ? Colors.white
-                                      : Colors.black)
+                                  ? (isDark ? Colors.white : Colors.black)
                                   : Colors.transparent,
                               width: 2,
                             ),
                           ),
                           child: selected
-                              ? const Icon(Icons.check,
-                                  size: 18, color: Colors.white)
+                              ? const Icon(Icons.check, size: 18, color: Colors.white)
                               : null,
                         ),
                       );
@@ -274,72 +282,108 @@ class ProfileScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              LiquidGlassPanel(
+              panel(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SwitchListTile(
-                      title: Text(context.l.reduceTransparency),
-                      subtitle: Text(context.l.reduceTransparencyDesc,
-                          style: const TextStyle(fontSize: 13)),
-                      secondary:
-                          const Icon(CupertinoIcons.eye_slash, size: 20),
-                      value: themeState.reduceTransparency,
-                      onChanged: (_) {
-                        ref
-                            .read(themeProvider.notifier)
-                            .toggleReduceTransparency();
-                      },
-                    ),
-                    const Divider(height: 1, indent: 56),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 6),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Icon(CupertinoIcons.globe, size: 20),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(context.l.language,
-                                style: const TextStyle(fontSize: 15)),
-                          ),
-                          CupertinoSlidingSegmentedControl<String>(
-                            groupValue:
-                                Localizations.localeOf(context).languageCode,
-                            onValueChanged: (code) {
-                              if (code == null) return;
-                              if (code == 'ru' || code == 'en') {
-                                ref
-                                    .read(localeProvider.notifier)
-                                    .setLocale(Locale(code));
-                              }
-                            },
-                            backgroundColor: isDark
-                                ? Colors.white.withValues(alpha: 0.07)
-                                : Colors.black.withValues(alpha: 0.05),
-                            thumbColor: accent,
-                            children: const {
-                              'en': Padding(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 6),
-                                child: Text('EN'),
-                              ),
-                              'ru': Padding(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 6),
-                                child: Text('RU'),
-                              ),
-                            },
-                          ),
-                        ],
+                    // Language selector
+                    Text(
+                      context.l.language,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.lightTextSecondary,
                       ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        _LangFlagButton(
+                          flag: '🇺🇸',
+                          label: 'EN',
+                          isSelected: Localizations.localeOf(context).languageCode == 'en',
+                          accent: accent,
+                          isDark: isDark,
+                          onTap: () => ref.read(localeProvider.notifier).setLocale(const Locale('en')),
+                        ),
+                        const SizedBox(width: 10),
+                        _LangFlagButton(
+                          flag: '🇷🇺',
+                          label: 'RU',
+                          isSelected: Localizations.localeOf(context).languageCode == 'ru',
+                          accent: accent,
+                          isDark: isDark,
+                          onTap: () => ref.read(localeProvider.notifier).setLocale(const Locale('ru')),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    const Divider(height: 1),
+                    const SizedBox(height: 18),
+
+                    // Reduce transparency
+                    Row(
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: themeState.reduceTransparency
+                                ? accent.withValues(alpha: isDark ? 0.20 : 0.14)
+                                : (isDark
+                                    ? Colors.white.withValues(alpha: 0.08)
+                                    : Colors.black.withValues(alpha: 0.05)),
+                          ),
+                          child: Icon(
+                            CupertinoIcons.eye_slash,
+                            size: 16,
+                            color: themeState.reduceTransparency
+                                ? accent
+                                : (isDark ? Colors.white54 : Colors.black45),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                context.l.reduceTransparency,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                context.l.reduceTransparencyDesc,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark
+                                      ? AppColors.darkTextSecondary
+                                      : AppColors.lightTextSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        CupertinoSwitch(
+                          value: themeState.reduceTransparency,
+                          activeTrackColor: accent,
+                          onChanged: (_) {
+                            ref.read(themeProvider.notifier).toggleReduceTransparency();
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
 
-              // Admin section
               if (user.isAdmin) ...[
                 Text(
                   context.l.adminSection,
@@ -378,9 +422,7 @@ class ProfileScreen extends ConsumerWidget {
                       Icon(
                         CupertinoIcons.chevron_right,
                         size: 16,
-                        color: isDark
-                            ? Colors.white38
-                            : Colors.black38,
+                        color: isDark ? Colors.white38 : Colors.black38,
                       ),
                     ],
                   ),
@@ -388,7 +430,6 @@ class ProfileScreen extends ConsumerWidget {
                 const SizedBox(height: 20),
               ],
 
-              // Data removal
               Text(
                 context.l.privacySection,
                 style: TextStyle(
@@ -401,76 +442,72 @@ class ProfileScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              LiquidGlassPanel(
-                child: ListTile(
-                  leading:
-                      const Icon(CupertinoIcons.trash, color: AppColors.danger),
-                  title: Text(
-                    context.l.deleteAccount,
-                    style: const TextStyle(
+              GestureDetector(
+                onTap: () async {
+                  final confirmed = await showGlassDialog<bool>(
+                    context,
+                    title: Text(context.l.deleteDataTitle),
+                    content: Text(context.l.deleteDataMessage),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: Text(context.l.cancel),
+                      ),
+                      GlassButton(
+                        primary: true,
                         color: AppColors.danger,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 15),
-                  ),
-                  onTap: () async {
-                    final confirmed = await showGlassDialog<bool>(
-                      context,
-                      title: Text(context.l.deleteDataTitle),
-                      content: Text(context.l.deleteDataMessage),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: Text(context.l.cancel),
-                        ),
-                        GlassButton(
-                          primary: true,
-                          color: AppColors.danger,
-                          height: 44,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
-                          onPressed: () => Navigator.pop(context, true),
-                          child: Text(
-                            context.l.delete,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
+                        height: 44,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        onPressed: () => Navigator.pop(context, true),
+                        child: Text(
+                          context.l.delete,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
                           ),
                         ),
-                      ],
-                    );
-                    if (confirmed == true && context.mounted) {
-                      final db = ref.read(databaseProvider);
-                      await db.deleteAllTranslations();
-                      ref.read(contextsProvider.notifier).clearAll();
-                      ref.read(authProvider.notifier).signOut();
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(context.l.dataDeleted)),
-                        );
-                      }
-                    }
-                  },
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Sign out button
-              Center(
-                child: GestureDetector(
-                  onTap: () {
-                    ref.read(authProvider.notifier).signOut();
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Text(
-                      context.l.signOut,
-                      style: const TextStyle(
-                        color: AppColors.danger,
-                        fontSize: 15,
                       ),
+                    ],
+                  );
+                  if (confirmed == true && context.mounted) {
+                    final db = ref.read(databaseProvider);
+                    await db.deleteAllTranslations();
+                    ref.read(contextsProvider.notifier).clearAll();
+                    ref.read(authProvider.notifier).signOut();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(context.l.dataDeleted)),
+                      );
+                    }
+                  }
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.black.withValues(alpha: 0.06),
+                      width: 1,
                     ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(CupertinoIcons.trash, size: 15, color: isDark ? Colors.white38 : Colors.black38),
+                      const SizedBox(width: 8),
+                      Text(
+                        context.l.deleteAccount,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.white54 : Colors.black45,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -499,29 +536,28 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-class _ThemeCard extends StatelessWidget {
+class _ThemeChip extends StatelessWidget {
   final ThemeMode mode;
   final ThemeMode current;
   final Color accent;
   final bool isDark;
+  final String label;
+  final IconData icon;
   final VoidCallback onTap;
 
-  const _ThemeCard({
+  const _ThemeChip({
     required this.mode,
     required this.current,
     required this.accent,
     required this.isDark,
+    required this.label,
+    required this.icon,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final selected = mode == current;
-    final label = mode == ThemeMode.light
-        ? context.l.light
-        : mode == ThemeMode.dark
-            ? context.l.dark
-            : context.l.system;
 
     return Expanded(
       child: GestureDetector(
@@ -541,11 +577,17 @@ class _ThemeCard extends StatelessWidget {
               width: selected ? 2 : 1,
             ),
           ),
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.symmetric(vertical: 12),
           child: Column(
             children: [
-              _MiniPreview(mode: mode, accent: accent),
-              const SizedBox(height: 8),
+              Icon(
+                icon,
+                size: 20,
+                color: selected
+                    ? accent
+                    : (isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
+              ),
+              const SizedBox(height: 6),
               Text(
                 label,
                 style: TextStyle(
@@ -553,9 +595,7 @@ class _ThemeCard extends StatelessWidget {
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                   color: selected
                       ? accent
-                      : (isDark
-                          ? AppColors.darkTextPrimary
-                          : AppColors.lightTextPrimary),
+                      : (isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
                 ),
               ),
             ],
@@ -566,95 +606,65 @@ class _ThemeCard extends StatelessWidget {
   }
 }
 
-class _MiniPreview extends StatelessWidget {
-  final ThemeMode mode;
+class _LangFlagButton extends StatelessWidget {
+  final String flag;
+  final String label;
+  final bool isSelected;
   final Color accent;
+  final bool isDark;
+  final VoidCallback onTap;
 
-  const _MiniPreview({required this.mode, required this.accent});
+  const _LangFlagButton({
+    required this.flag,
+    required this.label,
+    required this.isSelected,
+    required this.accent,
+    required this.isDark,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final lightBg = const Color(0xFFF2F2F7);
-    final darkBg = const Color(0xFF0D0D12);
-
-    Widget preview(Color bg, Color card) {
-      return Container(
-        height: 56,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: bg,
-          border: Border.all(
-            color: Colors.black.withValues(alpha: 0.06),
-            width: 0.5,
-          ),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              left: 8,
-              top: 8,
-              child: Container(
-                width: 26,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: card,
-                  borderRadius: BorderRadius.circular(5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.10),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              right: 8,
-              bottom: 8,
-              child: Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: accent,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    switch (mode) {
-      case ThemeMode.light:
-        return preview(lightBg, Colors.white);
-      case ThemeMode.dark:
-        return preview(darkBg, const Color(0xFF1C1C1E));
-      case ThemeMode.system:
-        return Container(
-          height: 56,
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
+            color: isSelected
+                ? accent.withValues(alpha: isDark ? 0.20 : 0.12)
+                : (isDark
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : Colors.black.withValues(alpha: 0.04)),
             border: Border.all(
-              color: Colors.black.withValues(alpha: 0.06),
-              width: 0.5,
+              color: isSelected
+                  ? accent.withValues(alpha: 0.6)
+                  : AppColors.separator(isDark),
+              width: isSelected ? 1.5 : 1,
             ),
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(color: lightBg),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(flag, style: const TextStyle(fontSize: 20)),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected
+                      ? accent
+                      : (isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
                 ),
-                Expanded(
-                  child: Container(color: darkBg),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        );
-    }
+        ),
+      ),
+    );
   }
 }
