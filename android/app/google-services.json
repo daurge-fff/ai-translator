@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "516442879708",
+    "project_id": "ai-powd",
+    "storage_bucket": "ai-powd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:516442879708:android:d3ec0bd67e8eafc162e619",
+        "android_client_info": {
+          "package_name": "com.example.ai_translator"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBfumcA4QrhraIR5WLAyibILOYu7Nsmt6c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
