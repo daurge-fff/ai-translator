@@ -301,7 +301,7 @@ class ProfileScreen extends ConsumerWidget {
                     Row(
                       children: [
                         _LangFlagButton(
-                          flag: '🇺🇸',
+                          flag: const Text('🇺🇸', style: TextStyle(fontSize: 20)),
                           label: 'EN',
                           isSelected: Localizations.localeOf(context).languageCode == 'en',
                           accent: accent,
@@ -310,7 +310,7 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                         const SizedBox(width: 10),
                         _LangFlagButton(
-                          flag: '🇷🇺',
+                          flag: _RuFlag(),
                           label: 'RU',
                           isSelected: Localizations.localeOf(context).languageCode == 'ru',
                           accent: accent,
@@ -482,6 +482,83 @@ class ProfileScreen extends ConsumerWidget {
                     }
                   }
                 },
+              ),
+              const SizedBox(height: 120),
+            ],
+          ),
+        ),
+    );
+  }
+
+class _RuFlag extends StatelessWidget {
+  const _RuFlag();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 28,
+      height: 20,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(3),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(3),
+        child: CustomPaint(
+          painter: _WavingFlagPainter(),
+          child: const Center(
+            child: Text(
+              'РУ',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF2D2D2D),
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WavingFlagPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Colors.white,
+          Colors.grey.shade100,
+        ],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    final path = Path()
+      ..moveTo(0, 0)
+      ..quadraticBezierTo(size.width * 0.25, size.height * 0.15, size.width * 0.5, 0)
+      ..quadraticBezierTo(size.width * 0.75, size.height * -0.15, size.width, 0)
+      ..lineTo(size.width, size.height)
+      ..quadraticBezierTo(size.width * 0.75, size.height * 0.85, size.width * 0.5, size.height)
+      ..quadraticBezierTo(size.width * 0.25, size.height * 1.15, 0, size.height)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+                },
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -607,7 +684,7 @@ class _ThemeChip extends StatelessWidget {
 }
 
 class _LangFlagButton extends StatelessWidget {
-  final String flag;
+  final Widget flag;
   final String label;
   final bool isSelected;
   final Color accent;
@@ -649,7 +726,7 @@ class _LangFlagButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(flag, style: const TextStyle(fontSize: 20)),
+              flag,
               const SizedBox(width: 8),
               Text(
                 label,

@@ -205,11 +205,11 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                       itemBuilder: (context, index) {
                         final item = items[index];
 
-                        String flagFor(String langName) {
+                        LanguageItem? langItemFor(String langName) {
                           for (final l in WorldLanguages.list) {
-                            if (l.name == langName) return l.flag;
+                            if (l.name == langName) return l;
                           }
-                          return '';
+                          return null;
                         }
 
                         return Dismissible(
@@ -231,10 +231,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                               children: [
                                 Row(
                                   children: [
-                                    Text(
-                                      flagFor(item.sourceLang),
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
+                                    if (langItemFor(item.sourceLang) != null)
+                                      languageFlagWidget(langItemFor(item.sourceLang)!, size: 12),
                                     const SizedBox(width: 3),
                                     Flexible(
                                       child: Text(
@@ -258,10 +256,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                         ),
                                       ),
                                     ),
-                                    Text(
-                                      flagFor(item.targetLang),
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
+                                    if (langItemFor(item.targetLang) != null)
+                                      languageFlagWidget(langItemFor(item.targetLang)!, size: 12),
                                     const SizedBox(width: 3),
                                     Flexible(
                                       child: Text(

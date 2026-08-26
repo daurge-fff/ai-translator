@@ -169,11 +169,11 @@ class _TranslateScreenState extends ConsumerState<TranslateScreen> {
       return langName;
     }
 
-    String langFlag(String langName) {
+    LanguageItem? langItemByName(String langName) {
       for (final l in WorldLanguages.list) {
-        if (l.name == langName || l.displayName(isRu) == langName) return l.flag;
+        if (l.name == langName || l.displayName(isRu) == langName) return l;
       }
-      return '';
+      return null;
     }
 
     return Scaffold(
@@ -236,10 +236,9 @@ class _TranslateScreenState extends ConsumerState<TranslateScreen> {
                                 trState.sourceLang != 'Auto Detect')
                               Padding(
                                 padding: const EdgeInsets.only(right: 4),
-                                child: Text(
-                                  langFlag(trState.sourceLang),
-                                  style: const TextStyle(fontSize: 14),
-                                ),
+                                child: langItemByName(trState.sourceLang) != null
+                                    ? languageFlagWidget(langItemByName(trState.sourceLang)!, size: 14)
+                                    : const SizedBox.shrink(),
                               ),
                             Flexible(
                               child: Text(
@@ -279,10 +278,9 @@ class _TranslateScreenState extends ConsumerState<TranslateScreen> {
                           children: [
                             Padding(
                               padding: const EdgeInsets.only(right: 4),
-                              child: Text(
-                                langFlag(trState.targetLang),
-                                style: const TextStyle(fontSize: 14),
-                              ),
+                              child: langItemByName(trState.targetLang) != null
+                                  ? languageFlagWidget(langItemByName(trState.targetLang)!, size: 14)
+                                  : const SizedBox.shrink(),
                             ),
                             Flexible(
                               child: Text(

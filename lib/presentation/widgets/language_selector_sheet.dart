@@ -150,7 +150,7 @@ class _LanguageSelectorSheetState extends ConsumerState<LanguageSelectorSheet> {
                         widget.currentLanguage == item.displayName(isRu);
 
                     return ListTile(
-                      leading: Text(item.flag, style: const TextStyle(fontSize: 24)),
+                      leading: languageFlagWidget(item, size: 24),
                       title: Text(
                         item.displayName(isRu),
                         style: TextStyle(

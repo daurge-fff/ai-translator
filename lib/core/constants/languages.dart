@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class LanguageItem {
   final String code;
   final String name;
@@ -5,6 +7,7 @@ class LanguageItem {
   final String flag;
   final String? regionalVariant;
   final String? nameEn;
+  final bool isCustomFlag;
 
   const LanguageItem({
     required this.code,
@@ -13,9 +16,55 @@ class LanguageItem {
     required this.flag,
     this.regionalVariant,
     this.nameEn,
+    this.isCustomFlag = false,
   });
 
   String displayName(bool isRu) => isRu ? name : (nameEn ?? name);
+}
+
+/// Returns the flag widget for a language item.
+/// For Russian, returns a custom "РУ" waving flag.
+/// For others, returns the emoji flag as text.
+Widget languageFlagWidget(LanguageItem item, {double size = 20}) {
+  if (item.code == 'ru') {
+    return _RuFlagSmall(size: size);
+  }
+  return Text(item.flag, style: TextStyle(fontSize: size));
+}
+
+class _RuFlagSmall extends StatelessWidget {
+  final double size;
+  const _RuFlagSmall({required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size * 1.4,
+      height: size,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.10),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          'РУ',
+          style: TextStyle(
+            fontSize: size * 0.5,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF2D2D2D),
+            letterSpacing: 0.3,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class WorldLanguages {
@@ -29,7 +78,7 @@ class WorldLanguages {
 
   static const List<LanguageItem> list = [
     autoDetect,
-    LanguageItem(code: 'ru', name: 'Русский', nativeName: 'Русский', flag: '🇷🇺'),
+    LanguageItem(code: 'ru', name: 'Русский', nativeName: 'Русский', flag: '🇷🇺', isCustomFlag: true),
     LanguageItem(code: 'en-US', name: 'English (US)', nativeName: 'American English', flag: '🇺🇸', regionalVariant: 'US'),
     LanguageItem(code: 'en-UK', name: 'English (UK)', nativeName: 'British English', flag: '🇬🇧', regionalVariant: 'UK'),
     LanguageItem(code: 'en-AU', name: 'English (Australia)', nativeName: 'Australian English', flag: '🇦🇺', regionalVariant: 'AU'),
