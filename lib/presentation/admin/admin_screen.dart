@@ -388,27 +388,48 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
           _buildHeader(context, isDark, accent),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-            child: CupertinoSlidingSegmentedControl<int>(
-              groupValue: _tabController.index,
-              onValueChanged: (v) {
-                if (v != null) _tabController.animateTo(v);
-              },
-              backgroundColor: isDark
-                  ? Colors.white.withValues(alpha: 0.07)
-                  : Colors.black.withValues(alpha: 0.05),
-              thumbColor: accent,
-              children: {
-                0: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 18, vertical: 8),
-                  child: Text('${context.l.alerts} (${adminState.incidents.length})'),
+            child: Row(
+              children: [
+                Expanded(
+                  child: LiquidGlassPill(
+                    isSelected: _tabController.index == 0,
+                    onTap: () => _tabController.animateTo(0),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Center(
+                      child: Text(
+                        '${context.l.alerts} (${adminState.incidents.length})',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: _tabController.index == 0
+                              ? Colors.white
+                              : (isDark ? Colors.white54 : Colors.black45),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-                1: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 18, vertical: 8),
-                  child: Text('${context.l.bans} (${adminState.bans.length})'),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: LiquidGlassPill(
+                    isSelected: _tabController.index == 1,
+                    onTap: () => _tabController.animateTo(1),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Center(
+                      child: Text(
+                        '${context.l.bans} (${adminState.bans.length})',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: _tabController.index == 1
+                              ? Colors.white
+                              : (isDark ? Colors.white54 : Colors.black45),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-              },
+              ],
             ),
           ),
           Expanded(

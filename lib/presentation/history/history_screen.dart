@@ -95,37 +95,44 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               const SizedBox(height: 12),
 
               // Search field
-              TextField(
-                controller: _searchController,
-                onChanged: (v) =>
-                    setState(() => _query = v.trim().toLowerCase()),
-                style: TextStyle(
-                  fontSize: 15,
-                  color:
-                      isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+              Container(
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(24),
                 ),
-                decoration: InputDecoration(
-                  hintText: context.l.historySearchHint,
-                  hintStyle: TextStyle(
-                    color: isDark ? Colors.white38 : Colors.black38,
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (v) =>
+                      setState(() => _query = v.trim().toLowerCase()),
+                  style: TextStyle(
+                    fontSize: 15,
+                    color:
+                        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
                   ),
-                  prefixIcon: Icon(
-                    CupertinoIcons.search,
-                    size: 18,
-                    color: isDark ? Colors.white38 : Colors.black38,
+                  decoration: InputDecoration(
+                    hintText: context.l.historySearchHint,
+                    hintStyle: TextStyle(
+                      color: isDark ? Colors.white38 : Colors.black38,
+                    ),
+                    prefixIcon: Icon(
+                      CupertinoIcons.search,
+                      size: 18,
+                      color: isDark ? Colors.white38 : Colors.black38,
+                    ),
+                    suffixIcon: _query.isNotEmpty
+                        ? GestureDetector(
+                            onTap: () {
+                              _searchController.clear();
+                              setState(() => _query = '');
+                            },
+                            child: const Icon(CupertinoIcons.xmark_circle_fill,
+                                size: 18, color: Colors.grey),
+                          )
+                        : null,
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    border: InputBorder.none,
                   ),
-                  suffixIcon: _query.isNotEmpty
-                      ? GestureDetector(
-                          onTap: () {
-                            _searchController.clear();
-                            setState(() => _query = '');
-                          },
-                          child: const Icon(CupertinoIcons.xmark_circle_fill,
-                              size: 18, color: Colors.grey),
-                        )
-                      : null,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
               ),
               const SizedBox(height: 12),

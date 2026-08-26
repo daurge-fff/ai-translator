@@ -101,79 +101,82 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      body: NotificationListener<ScrollNotification>(
-        onNotification: _onScrollNotification,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: IndexedStack(
-                index: _currentIndex >= screens.length ? 0 : _currentIndex,
-                children: screens,
+      body: SafeArea(
+        bottom: false,
+        child: NotificationListener<ScrollNotification>(
+          onNotification: _onScrollNotification,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: IndexedStack(
+                  index: _currentIndex >= screens.length ? 0 : _currentIndex,
+                  children: screens,
+                ),
               ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: 140,
-              child: IgnorePointer(
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeOutCubic,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        _bottomFade.withValues(alpha: 0),
-                        _bottomFade.withValues(alpha: 0.45),
-                        _bottomFade.withValues(alpha: 0.98),
-                      ],
-                      stops: const [0.0, 0.6, 1.0],
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 140,
+                child: IgnorePointer(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOutCubic,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          _bottomFade.withValues(alpha: 0),
+                          _bottomFade.withValues(alpha: 0.45),
+                          _bottomFade.withValues(alpha: 0.98),
+                        ],
+                        stops: const [0.0, 0.6, 1.0],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: LiquidGlassNavigationBar(
-                currentIndex:
-                    _currentIndex >= screens.length ? 0 : _currentIndex,
-                dimmed: _navDimmed,
-                onIndexChanged: (index) {
-                  setState(() {
-                    _currentIndex = index;
-                    _navDimmed = false;
-                  });
-                },
-                items: [
-                  NavigationItem(
-                    icon: CupertinoIcons.captions_bubble,
-                    activeIcon: CupertinoIcons.captions_bubble_fill,
-                    label: context.l.navTranslate,
-                  ),
-                  NavigationItem(
-                    icon: CupertinoIcons.bookmark,
-                    activeIcon: CupertinoIcons.bookmark_fill,
-                    label: context.l.navContexts,
-                  ),
-                  NavigationItem(
-                    icon: CupertinoIcons.clock,
-                    activeIcon: CupertinoIcons.clock_fill,
-                    label: context.l.navHistory,
-                  ),
-                  NavigationItem(
-                    icon: CupertinoIcons.person,
-                    activeIcon: CupertinoIcons.person_fill,
-                    label: context.l.navProfile,
-                  ),
-                ],
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: LiquidGlassNavigationBar(
+                  currentIndex:
+                      _currentIndex >= screens.length ? 0 : _currentIndex,
+                  dimmed: _navDimmed,
+                  onIndexChanged: (index) {
+                    setState(() {
+                      _currentIndex = index;
+                      _navDimmed = false;
+                    });
+                  },
+                  items: [
+                    NavigationItem(
+                      icon: CupertinoIcons.captions_bubble,
+                      activeIcon: CupertinoIcons.captions_bubble_fill,
+                      label: context.l.navTranslate,
+                    ),
+                    NavigationItem(
+                      icon: CupertinoIcons.bookmark,
+                      activeIcon: CupertinoIcons.bookmark_fill,
+                      label: context.l.navContexts,
+                    ),
+                    NavigationItem(
+                      icon: CupertinoIcons.clock,
+                      activeIcon: CupertinoIcons.clock_fill,
+                      label: context.l.navHistory,
+                    ),
+                    NavigationItem(
+                      icon: CupertinoIcons.person,
+                      activeIcon: CupertinoIcons.person_fill,
+                      label: context.l.navProfile,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

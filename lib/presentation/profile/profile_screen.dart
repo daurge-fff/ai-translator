@@ -31,16 +31,37 @@ class ProfileScreen extends ConsumerWidget {
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                context.l.profileTitle,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: isDark
-                      ? AppColors.darkTextPrimary
-                      : AppColors.lightTextPrimary,
-                ),
-              ).animate().fadeIn(duration: 400.ms, delay: 100.ms).slideX(begin: -0.08),
+              // Title + sign-out
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    context.l.profileTitle,
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: isDark
+                          ? AppColors.darkTextPrimary
+                          : AppColors.lightTextPrimary,
+                    ),
+                  ).animate().fadeIn(duration: 400.ms, delay: 100.ms).slideX(begin: -0.08),
+                  GestureDetector(
+                    onTap: () {
+                      ref.read(authProvider.notifier).signOut();
+                    },
+                    child: Text(
+                      context.l.signOut,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.lightTextSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 20),
 
               // User Info Card
@@ -80,8 +101,8 @@ class ProfileScreen extends ConsumerWidget {
                                   user.displayName,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ),
@@ -113,7 +134,7 @@ class ProfileScreen extends ConsumerWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 13,
                               color: isDark
                                   ? AppColors.darkTextSecondary
                                   : AppColors.lightTextSecondary,
@@ -121,36 +142,6 @@ class ProfileScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Account panel
-              LiquidGlassPanel(
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: Icon(
-                          CupertinoIcons.person_crop_circle_badge_checkmark,
-                          color: accent),
-                      title: Text(context.l.googleAccount),
-                      subtitle: Text(context.l.signedInGoogle,
-                          style: const TextStyle(fontSize: 12)),
-                    ),
-                    ListTile(
-                      leading: const Icon(CupertinoIcons.square_arrow_right,
-                          color: AppColors.warning),
-                      title: Text(
-                        context.l.signOut,
-                        style: const TextStyle(
-                            color: AppColors.warning,
-                            fontWeight: FontWeight.w600),
-                      ),
-                      onTap: () {
-                        ref.read(authProvider.notifier).signOut();
-                      },
                     ),
                   ],
                 ),
@@ -166,7 +157,7 @@ class ProfileScreen extends ConsumerWidget {
                   color: isDark
                       ? AppColors.darkTextSecondary
                       : AppColors.lightTextSecondary,
-                  letterSpacing: 0.8,
+                  letterSpacing: 1.0,
                 ),
               ),
               const SizedBox(height: 10),
@@ -198,65 +189,74 @@ class ProfileScreen extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        _ThemeCard(
-                          mode: ThemeMode.system,
-                          current: themeState.themeMode,
-                          accent: accent,
-                          isDark: isDark,
-                          onTap: () => ref
-                              .read(themeProvider.notifier)
-                              .setThemeMode(ThemeMode.system),
-                        ),
-                        const SizedBox(width: 10),
-                        _AccentCard(
-                          accent: accent,
-                          isDark: isDark,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    SizedBox(
-                      height: 44,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: BrandAccentColor.values.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 10),
-                        itemBuilder: (context, index) {
-                          final col = BrandAccentColor.values[index];
-                          final selected = themeState.accentColor == col;
-                          return GestureDetector(
-                            onTap: () {
-                              ref
-                                  .read(themeProvider.notifier)
-                                  .setAccentColor(col);
-                            },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              width: 44,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: col.color,
-                                border: Border.all(
-                                  color: selected
-                                      ? (isDark
-                                          ? Colors.white
-                                          : Colors.black)
-                                      : Colors.transparent,
-                                  width: 2,
-                                ),
-                              ),
-                              child: selected
-                                  ? const Icon(Icons.check,
-                                      size: 18, color: Colors.white)
-                                  : null,
-                            ),
-                          );
-                        },
-                      ),
+                    _ThemeCard(
+                      mode: ThemeMode.system,
+                      current: themeState.themeMode,
+                      accent: accent,
+                      isDark: isDark,
+                      onTap: () => ref
+                          .read(themeProvider.notifier)
+                          .setThemeMode(ThemeMode.system),
                     ),
                   ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Accent color
+              Text(
+                context.l.accentColor.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.lightTextSecondary,
+                  letterSpacing: 1.0,
+                ),
+              ),
+              const SizedBox(height: 10),
+              LiquidGlassPanel(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: SizedBox(
+                  height: 36,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: BrandAccentColor.values.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 10),
+                    itemBuilder: (context, index) {
+                      final col = BrandAccentColor.values[index];
+                      final selected = themeState.accentColor == col;
+                      return GestureDetector(
+                        onTap: () {
+                          ref
+                              .read(themeProvider.notifier)
+                              .setAccentColor(col);
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: col.color,
+                            border: Border.all(
+                              color: selected
+                                  ? (isDark
+                                      ? Colors.white
+                                      : Colors.black)
+                                  : Colors.transparent,
+                              width: 2,
+                            ),
+                          ),
+                          child: selected
+                              ? const Icon(Icons.check,
+                                  size: 18, color: Colors.white)
+                              : null,
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -270,7 +270,7 @@ class ProfileScreen extends ConsumerWidget {
                   color: isDark
                       ? AppColors.darkTextSecondary
                       : AppColors.lightTextSecondary,
-                  letterSpacing: 0.8,
+                  letterSpacing: 1.0,
                 ),
               ),
               const SizedBox(height: 10),
@@ -280,7 +280,7 @@ class ProfileScreen extends ConsumerWidget {
                     SwitchListTile(
                       title: Text(context.l.reduceTransparency),
                       subtitle: Text(context.l.reduceTransparencyDesc,
-                          style: const TextStyle(fontSize: 12)),
+                          style: const TextStyle(fontSize: 13)),
                       secondary:
                           const Icon(CupertinoIcons.eye_slash, size: 20),
                       value: themeState.reduceTransparency,
@@ -301,7 +301,7 @@ class ProfileScreen extends ConsumerWidget {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(context.l.language,
-                                style: const TextStyle(fontSize: 16)),
+                                style: const TextStyle(fontSize: 15)),
                           ),
                           CupertinoSlidingSegmentedControl<String>(
                             groupValue:
@@ -347,7 +347,7 @@ class ProfileScreen extends ConsumerWidget {
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: AppColors.danger,
-                    letterSpacing: 0.8,
+                    letterSpacing: 1.0,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -397,7 +397,7 @@ class ProfileScreen extends ConsumerWidget {
                   color: isDark
                       ? AppColors.darkTextSecondary
                       : AppColors.lightTextSecondary,
-                  letterSpacing: 0.8,
+                  letterSpacing: 1.0,
                 ),
               ),
               const SizedBox(height: 10),
@@ -407,9 +407,10 @@ class ProfileScreen extends ConsumerWidget {
                       const Icon(CupertinoIcons.trash, color: AppColors.danger),
                   title: Text(
                     context.l.deleteAccount,
-                    style: TextStyle(
+                    style: const TextStyle(
                         color: AppColors.danger,
-                        fontWeight: FontWeight.w500),
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15),
                   ),
                   onTap: () async {
                     final confirmed = await showGlassDialog<bool>(
@@ -451,6 +452,26 @@ class ProfileScreen extends ConsumerWidget {
                       }
                     }
                   },
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Sign out button
+              Center(
+                child: GestureDetector(
+                  onTap: () {
+                    ref.read(authProvider.notifier).signOut();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Text(
+                      context.l.signOut,
+                      style: const TextStyle(
+                        color: AppColors.danger,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 120),
@@ -539,63 +560,6 @@ class _ThemeCard extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AccentCard extends StatelessWidget {
-  final Color accent;
-  final bool isDark;
-
-  const _AccentCard({required this.accent, required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          color: accent.withValues(alpha: isDark ? 0.20 : 0.14),
-          border: Border.all(
-            color: accent.withValues(alpha: 0.5),
-            width: 2,
-          ),
-        ),
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          children: [
-            Container(
-              height: 56,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: accent.withValues(alpha: 0.25),
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: accent,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              context.l.accentColor,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: accent,
-              ),
-            ),
-          ],
         ),
       ),
     );
