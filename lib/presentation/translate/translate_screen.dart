@@ -31,6 +31,13 @@ class _TranslateScreenState extends ConsumerState<TranslateScreen> {
     super.initState();
     _sourceController = TextEditingController();
     _contextController = TextEditingController();
+
+    // Sync sourceController when state changes externally (e.g. swapLanguages)
+    ref.listenManual(translationProvider, (prev, next) {
+      if (_sourceController.text != next.sourceText) {
+        _sourceController.text = next.sourceText;
+      }
+    });
   }
 
   @override
@@ -133,6 +140,14 @@ class _TranslateScreenState extends ConsumerState<TranslateScreen> {
     final trNotifier = ref.read(translationProvider.notifier);
     final templates = ref.watch(contextsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isRu = Localizations.localeOf(context).languageCode == 'ru';
+
+    String displayLang(String langName) {
+      if (langName == 'Автоопределение' || langName == 'Auto Detect') {
+        return isRu ? 'Автоопределение' : 'Auto Detect';
+      }
+      return langName;
+    }
 
     return Scaffold(
       body: CustomScrollView(
@@ -190,7 +205,7 @@ class _TranslateScreenState extends ConsumerState<TranslateScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      trState.sourceLang,
+                                      displayLang(trState.sourceLang),
                                       style: const TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w600,
@@ -219,7 +234,7 @@ class _TranslateScreenState extends ConsumerState<TranslateScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      trState.targetLang,
+                                      displayLang(trState.targetLang),
                                       style: const TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w600,

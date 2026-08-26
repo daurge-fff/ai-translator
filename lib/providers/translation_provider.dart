@@ -93,9 +93,28 @@ class TranslationNotifier extends StateNotifier<TranslationState> {
     final oldSourceText = state.sourceText;
     final oldTranslated = state.translatedText;
 
+    final isSourceAuto = oldSource == 'Автоопределение' || oldSource == 'Auto Detect';
+    final isTargetAuto = oldTarget == 'Автоопределение' || oldTarget == 'Auto Detect';
+
+    String newSource;
+    String newTarget;
+
+    if (isSourceAuto) {
+      // Source was auto-detect → target becomes source, source defaults to English
+      newTarget = isTargetAuto ? 'English' : oldTarget;
+      newSource = 'English';
+    } else if (isTargetAuto) {
+      // Target was auto-detect → source becomes target, target defaults to English
+      newSource = oldSource;
+      newTarget = 'English';
+    } else {
+      newSource = oldTarget;
+      newTarget = oldSource;
+    }
+
     state = state.copyWith(
-      sourceLang: oldTarget == 'Auto' ? 'English' : oldTarget,
-      targetLang: oldSource,
+      sourceLang: newSource,
+      targetLang: newTarget,
       sourceText: oldTranslated,
       translatedText: oldSourceText,
     );

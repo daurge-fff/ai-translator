@@ -4,6 +4,7 @@ class LanguageItem {
   final String nativeName;
   final String flag;
   final String? regionalVariant;
+  final String? nameEn;
 
   const LanguageItem({
     required this.code,
@@ -11,7 +12,10 @@ class LanguageItem {
     required this.nativeName,
     required this.flag,
     this.regionalVariant,
+    this.nameEn,
   });
+
+  String displayName(bool isRu) => isRu ? name : (nameEn ?? name);
 }
 
 class WorldLanguages {
@@ -20,6 +24,7 @@ class WorldLanguages {
     name: 'Автоопределение',
     nativeName: 'Auto Detect',
     flag: '✨',
+    nameEn: 'Auto Detect',
   );
 
   static const List<LanguageItem> list = [

@@ -49,6 +49,7 @@ class _LanguageSelectorSheetState extends ConsumerState<LanguageSelectorSheet> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = ref.watch(themeProvider).accentColor.color;
+    final isRu = Localizations.localeOf(context).languageCode == 'ru';
 
     final availableLanguages = widget.isTarget
         ? WorldLanguages.list.where((lang) => lang.code != 'Auto').toList()
@@ -72,10 +73,6 @@ class _LanguageSelectorSheetState extends ConsumerState<LanguageSelectorSheet> {
             color: isDark
                 ? const Color(0xFF161622).withValues(alpha: 0.90)
                 : Colors.white.withValues(alpha: 0.90),
-            border: Border.all(
-              color: isDark ? Colors.white.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.60),
-              width: 1.2,
-            ),
           ),
           child: Column(
             children: [
@@ -134,12 +131,13 @@ class _LanguageSelectorSheetState extends ConsumerState<LanguageSelectorSheet> {
                   separatorBuilder: (_, __) => const Divider(height: 1, indent: 44),
                   itemBuilder: (context, index) {
                     final item = filteredLanguages[index];
-                    final isSelected = widget.currentLanguage == item.name;
+                    final isSelected = widget.currentLanguage == item.name ||
+                        widget.currentLanguage == item.displayName(isRu);
 
                     return ListTile(
                       leading: Text(item.flag, style: const TextStyle(fontSize: 24)),
                       title: Text(
-                        item.name,
+                        item.displayName(isRu),
                         style: TextStyle(
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                           color: isSelected ? accent : null,
