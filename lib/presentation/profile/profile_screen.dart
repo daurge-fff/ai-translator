@@ -153,7 +153,7 @@ class ProfileScreen extends ConsumerWidget {
                   itemCount: BrandAccentColor.values.length + 1,
                   separatorBuilder: (_, __) => const SizedBox(width: 10),
                   itemBuilder: (context, index) {
-                    if (index == BrandAccentColor.values.length) {
+                    if (index == 0) {
                       final selected = themeState.useDeviceTheme;
                       return GestureDetector(
                         onTap: () => ref.read(themeProvider.notifier).setUseDeviceTheme(),
@@ -169,7 +169,7 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                       );
                     }
-                    final col = BrandAccentColor.values[index];
+                    final col = BrandAccentColor.values[index - 1];
                     final selected = !themeState.useDeviceTheme && themeState.accentColor == col;
                     return GestureDetector(
                       onTap: () => ref.read(themeProvider.notifier).setAccentColor(col),
