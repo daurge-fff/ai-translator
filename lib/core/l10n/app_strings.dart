@@ -25,6 +25,11 @@ class AppStrings {
   String get featureLanguagesDesc => t('Dialects: US, UK, AU, CA. Pick the exact variant for a perfect translation.', 'Диалекты: US, UK, AU, CA. Выбирайте точный вариант для идеального перевода.');
   String get signInWithGoogle => t('Sign in with Google', 'Войти через Google');
   String get signInFailed => t('Could not sign in. Please try again.', 'Не удалось войти. Попробуйте ещё раз.');
+  String get swipeHint => t('Swipe to explore', 'Проведите, чтобы узнать больше');
+  String get statAi => t('AI-powered', 'ИИ-перевод');
+  String get statLanguages => t('100+ languages', '100+ языков');
+  String get statContext => t('Context-aware', 'Понимает контекст');
+  String get authFooter => t('By continuing you agree to the Terms of Service', 'Продолжая, вы принимаете условия использования');
 
   // Translate
   String get translateTitle => t('Translator', 'Переводчик');

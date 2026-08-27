@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../data/remote/api_client.dart';
 import 'api_client_provider.dart';
-
 class UserProfile {
   final String email;
   final String displayName;
@@ -57,9 +56,9 @@ class AuthNotifier extends StateNotifier<UserProfile> {
   static const String _iosClientId =
       '841057078666-7ro3biov52o9sspkr5p7v1mkaejsbu2l.apps.googleusercontent.com';
 
-  final Ref _ref;
+  final ApiClient _api;
 
-  AuthNotifier(this._ref) : super(const UserProfile()) {
+  AuthNotifier(this._api) : super(const UserProfile()) {
     _googleSignIn = GoogleSignIn(
       clientId: kIsWeb
           ? _webClientId
@@ -82,6 +81,8 @@ class AuthNotifier extends StateNotifier<UserProfile> {
       final account = await _googleSignIn.signIn();
       if (account == null) return null;
       final auth = await account.authentication;
+      final idToken = auth.idToken ?? '';
+      _api.setIdToken(idToken.isNotEmpty ? idToken : null);
       state = UserProfile(
         email: account.email,
         displayName: (account.displayName != null &&
@@ -91,7 +92,7 @@ class AuthNotifier extends StateNotifier<UserProfile> {
         avatarUrl: account.photoUrl ?? '',
         isAdmin: adminEmails.contains(account.email.toLowerCase()),
         isAuthenticated: true,
-        idToken: auth.idToken ?? '',
+        idToken: idToken,
       );
       return null;
     } catch (e) {
@@ -107,8 +108,7 @@ class AuthNotifier extends StateNotifier<UserProfile> {
   /// so a removed/expired ban is cleared without restarting the app.
   Future<void> refreshBanStatus() async {
     if (!state.isAuthenticated || state.idToken.isEmpty) return;
-    final api = _ref.read(apiClientProvider);
-    final ban = await api.fetchBanStatus();
+    final ban = await _api.fetchBanStatus();
     if (ban != null) {
       state = state.copyWith(ban: ban);
     } else {
@@ -122,10 +122,11 @@ class AuthNotifier extends StateNotifier<UserProfile> {
     } catch (_) {
       // Ignore sign-out errors; always clear the local session.
     }
+    _api.setIdToken(null);
     state = const UserProfile();
   }
 }
 
 final authProvider = StateNotifierProvider<AuthNotifier, UserProfile>(
-  (ref) => AuthNotifier(ref),
+  (ref) => AuthNotifier(ref.watch(apiClientProvider)),
 );

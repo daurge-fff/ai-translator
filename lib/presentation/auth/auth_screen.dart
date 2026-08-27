@@ -33,7 +33,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(viewportFraction: 0.88, initialPage: 500);
+    _pageController = PageController(viewportFraction: 0.86, initialPage: 500);
     _blobController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 8),
@@ -87,7 +87,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     SizedBox(height: MediaQuery.of(context).padding.top + 10),
-                    // Header block (hero + title) — padded
+                    // Header block (hero + title + tagline)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
@@ -135,24 +135,45 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                       currentPage: _currentPage,
                       onPageChanged: (i) =>
                           setState(() => _currentPage = i),
-                      accent: accent,
                       isDark: isDark,
-                      pulse: _pulseController,
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 4),
 
-                    // Footer block (indicators + button) — padded
+                    // Swipe hint
+                    Text(
+                      context.l.swipeHint,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.lightTextSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Page indicators
+                    _PageIndicators(
+                      count: 3,
+                      currentPage: _currentPage % 3,
+                      accent: accent,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Mini feature stats
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: _StatsRow(isDark: isDark, accent: accent),
+                    ),
+                    const SizedBox(height: 26),
+
+                    // Footer block (button + terms)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _PageIndicators(
-                            count: 3,
-                            currentPage: _currentPage % 3,
-                            accent: accent,
-                          ),
-                          const SizedBox(height: 32),
                           _GoogleSignInButton(
                             isSigningIn: _isSigningIn,
                             onPressed: () async {
@@ -173,6 +194,18 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                                 );
                               }
                             },
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            context.l.authFooter,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 11,
+                              height: 1.4,
+                              color: isDark
+                                  ? Colors.white24
+                                  : Colors.black26,
+                            ),
                           ),
                         ],
                       ),
@@ -313,12 +346,12 @@ class _HeroIcon extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            accent.withValues(alpha: isDark ? 0.25 : 0.20),
+            accent.withValues(alpha: isDark ? 0.28 : 0.22),
             accent.withValues(alpha: isDark ? 0.10 : 0.08),
           ],
         ),
         border: Border.all(
-          color: Colors.white.withValues(alpha: isDark ? 0.12 : 0.30),
+          color: Colors.white.withValues(alpha: isDark ? 0.14 : 0.35),
           width: 1.2,
         ),
       ),
@@ -328,7 +361,7 @@ class _HeroIcon extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: isDark ? 0.08 : 0.20),
+              color: Colors.white.withValues(alpha: isDark ? 0.08 : 0.18),
             ),
             child: Icon(
               CupertinoIcons.captions_bubble_fill,
@@ -340,61 +373,14 @@ class _HeroIcon extends StatelessWidget {
       ),
     );
 
-    return SizedBox(
-      width: 120,
-      height: 120,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Pulsing aura rings
-          ScaleTransition(
-            scale: Tween<double>(begin: 0.85, end: 1.22).animate(pulse),
-            child: AnimatedBuilder(
-              animation: pulse,
-              builder: (context, child) {
-                final a = 0.05 + 0.05 * pulse.value;
-                return Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        accent.withValues(alpha: a),
-                        accent.withValues(alpha: 0),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          // Glow shadow
-          AnimatedBuilder(
-            animation: pulse,
-            builder: (context, child) => Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: accent.withValues(
-                        alpha: 0.18 + 0.14 * pulse.value),
-                    blurRadius: 26 + 16 * pulse.value,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: child,
-            ),
-            child: Transform.scale(
-              scale: 0.96 + 0.04 * pulse.value,
-              child: glassCircle,
-            ),
-          ),
-        ],
+    // Gentle floating motion (no glow).
+    return AnimatedBuilder(
+      animation: pulse,
+      builder: (context, child) => Transform.translate(
+        offset: Offset(0, -4 * (0.5 + 0.5 * pulse.value)),
+        child: child,
       ),
+      child: glassCircle,
     );
   }
 }
@@ -407,101 +393,137 @@ class _FeatureCarousel extends StatelessWidget {
   final PageController pageController;
   final int currentPage;
   final ValueChanged<int> onPageChanged;
-  final Color accent;
   final bool isDark;
-  final Animation<double> pulse;
 
   const _FeatureCarousel({
     required this.pageController,
     required this.currentPage,
     required this.onPageChanged,
-    required this.accent,
     required this.isDark,
-    required this.pulse,
   });
 
   @override
   Widget build(BuildContext context) {
     final features = _buildFeatures(context.l);
     final featureCount = features.length;
+
     return SizedBox(
-      height: 230,
+      height: 252,
       child: PageView.builder(
         controller: pageController,
         onPageChanged: onPageChanged,
         itemCount: null,
         itemBuilder: (context, index) {
-          final f = features[index % featureCount];
+          final feature = features[index % featureCount];
           final isActive = (index % featureCount) ==
               (currentPage % featureCount);
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             child: AnimatedBuilder(
-              animation: pulse,
-              builder: (context, child) => Transform.scale(
-                scale: isActive ? 1.0 + 0.02 + 0.015 * pulse.value : 0.99,
-                child: child,
-              ),
-              child: LiquidGlassPanel(
-                padding: const EdgeInsets.all(24),
-                borderRadius: 24,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    AnimatedBuilder(
-                      animation: pulse,
-                      builder: (context, child) => Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(18),
-                          color: f.color
-                              .withValues(alpha: (isDark ? 0.15 : 0.12) +
-                                  0.05 * pulse.value),
-                          boxShadow: [
-                            BoxShadow(
-                              color: f.color
-                                  .withValues(alpha: 0.12 + 0.12 * pulse.value),
-                              blurRadius: 14 + 10 * pulse.value,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Icon(f.icon, size: 28, color: f.color),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      f.title,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: isDark
-                            ? AppColors.darkTextPrimary
-                            : AppColors.lightTextPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      f.description,
-                      textAlign: TextAlign.center,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 13,
-                        height: 1.4,
-                        color: isDark
-                            ? AppColors.darkTextSecondary
-                            : AppColors.lightTextSecondary,
-                      ),
-                    ),
-                  ],
-                ),
+              animation: pageController,
+              builder: (context, child) {
+                final double page =
+                    pageController.hasClients ? (pageController.page ?? 0) : 0;
+                final diff = (index - page).abs();
+                final scale = 1.0 - 0.07 * diff.clamp(0.0, 1.0);
+                final opacity = 1.0 - 0.5 * diff.clamp(0.0, 1.2);
+                return Transform.scale(
+                  scale: scale,
+                  child: Opacity(
+                    opacity: opacity.clamp(0.0, 1.0),
+                    child: child,
+                  ),
+                );
+              },
+              child: _FeatureCard(
+                feature: feature,
+                isActive: isActive,
+                isDark: isDark,
               ),
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _FeatureCard extends StatelessWidget {
+  final _FeatureData feature;
+  final bool isActive;
+  final bool isDark;
+
+  const _FeatureCard({
+    required this.feature,
+    required this.isActive,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = feature.color;
+    return LiquidGlassPanel(
+      borderRadius: 26,
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 22),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Icon tile with soft gradient
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeOutCubic,
+            width: 58,
+            height: 58,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  color.withValues(alpha: (isDark ? 0.22 : 0.16)),
+                  color.withValues(alpha: (isDark ? 0.06 : 0.04)),
+                ],
+              ),
+              border: Border.all(
+                color: color.withValues(alpha: isActive ? 0.40 : 0.18),
+                width: 1.1,
+              ),
+            ),
+            child: Icon(feature.icon, size: 28, color: color),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            feature.title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.2,
+              height: 1.2,
+              color: isDark
+                  ? AppColors.darkTextPrimary
+                  : AppColors.lightTextPrimary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Fixed-height description area → all cards have identical height
+          SizedBox(
+            height: 54,
+            child: Text(
+              feature.description,
+              textAlign: TextAlign.center,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13,
+                height: 1.38,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.lightTextSecondary,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -578,6 +600,95 @@ class _PageIndicators extends StatelessWidget {
           ),
         );
       }),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Mini feature stats (row of pills)
+// ---------------------------------------------------------------------------
+
+class _StatsRow extends StatelessWidget {
+  final bool isDark;
+  final Color accent;
+
+  const _StatsRow({required this.isDark, required this.accent});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l;
+    final entries = [
+      (icon: CupertinoIcons.sparkles, label: l.statAi),
+      (icon: CupertinoIcons.globe, label: l.statLanguages),
+      (icon: CupertinoIcons.text_bubble, label: l.statContext),
+    ];
+    return Row(
+      children: [
+        for (var i = 0; i < entries.length; i++) ...[
+          Expanded(
+            child: _StatChip(
+              icon: entries[i].icon,
+              label: entries[i].label,
+              isDark: isDark,
+              accent: accent,
+            ),
+          ),
+          if (i != entries.length - 1) const SizedBox(width: 8),
+        ],
+      ],
+    );
+  }
+}
+
+class _StatChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isDark;
+  final Color accent;
+
+  const _StatChip({
+    required this.icon,
+    required this.label,
+    required this.isDark,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.06)
+            : Colors.white.withValues(alpha: 0.55),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.10)
+              : Colors.white.withValues(alpha: 0.60),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: accent),
+          const SizedBox(height: 5),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.lightTextSecondary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

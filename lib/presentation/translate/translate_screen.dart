@@ -186,8 +186,7 @@ class _TranslateScreenState extends ConsumerState<TranslateScreen> {
           // Header Bar
           SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                  20, MediaQuery.of(context).padding.top + 4, 20, 12),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
                 child: Column(
                   children: [
                     // Title Bar
