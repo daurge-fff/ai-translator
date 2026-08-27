@@ -167,6 +167,10 @@ class AppStrings {
   String get serverUnavailable => t('Server unavailable', 'Сервер недоступен');
   String get incidentTitle => t('Incident', 'Инцидент');
   String get translationErrorPrefix => t('Translation error: ', 'Ошибка перевода: ');
+  String get deleteBlocked => t('Account deletion is blocked (banned)', 'Удаление заблокировано (бан)');
+  String get banPermanentText => t('You are permanently banned', 'Вы заблокированы навсегда');
+  String get banUntilText => t('Banned until', 'Блокировка до');
+  String get banReasonText => t('Reason:', 'Причина:');
 }
 
 extension AppStringsContext on BuildContext {

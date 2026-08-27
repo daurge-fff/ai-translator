@@ -2,6 +2,14 @@ import 'package:dio/dio.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/device/device_id.dart';
 
+class BanException implements Exception {
+  final String reason;
+  final String warningMessage;
+  final String? expiresAt;
+
+  BanException({this.reason = '', this.warningMessage = '', this.expiresAt});
+}
+
 class ApiClient {
   late final Dio _dio;
   String? _idToken;
@@ -46,17 +54,31 @@ class ApiClient {
     String? userContext,
     String? regionalVariant,
   }) async {
-    final response = await _dio.post(
-      ApiConstants.translateEndpoint,
-      data: {
-        'sourceText': sourceText,
-        'sourceLang': sourceLang,
-        'targetLang': targetLang,
-        'userContext': userContext ?? '',
-        'regionalVariant': regionalVariant ?? '',
-      },
-    );
-    return response.data;
+    try {
+      final response = await _dio.post(
+        ApiConstants.translateEndpoint,
+        data: {
+          'sourceText': sourceText,
+          'sourceLang': sourceLang,
+          'targetLang': targetLang,
+          'userContext': userContext ?? '',
+          'regionalVariant': regionalVariant ?? '',
+        },
+      );
+      return response.data;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 403) {
+        final data = e.response?.data;
+        if (data is Map && (data['reason'] != null || data['warningMessage'] != null)) {
+          throw BanException(
+            reason: data['reason'] ?? '',
+            warningMessage: data['warningMessage'] ?? '',
+            expiresAt: data['expiresAt'],
+          );
+        }
+      }
+      rethrow;
+    }
   }
 
   Future<List<dynamic>> fetchAdminIncidents() async {

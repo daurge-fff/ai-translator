@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' as drift;
 import '../data/local/database.dart';
@@ -56,9 +57,10 @@ class TranslationState {
 class TranslationNotifier extends StateNotifier<TranslationState> {
   final ApiClient _apiClient;
   final AppDatabase _db;
+  final ValueChanged<BanInfo?> _onBan;
   Timer? _debounceTimer;
 
-  TranslationNotifier(this._apiClient, this._db) : super(TranslationState());
+  TranslationNotifier(this._apiClient, this._db, this._onBan) : super(TranslationState());
 
   void _debouncedTranslate() {
     if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
@@ -161,6 +163,7 @@ class TranslationNotifier extends StateNotifier<TranslationState> {
     } catch (e) {
       final ban = BanInfo.tryParse(e);
       if (ban != null) {
+        _onBan(ban);
         state = state.copyWith(
           isLoading: false,
           errorMessage: _formatBanMessage(ban),
@@ -196,5 +199,6 @@ final translationProvider = StateNotifierProvider<TranslationNotifier, Translati
   ref.listen(authProvider, (prev, next) {
     apiClient.setIdToken(next.idToken.isNotEmpty ? next.idToken : null);
   }, fireImmediately: true);
-  return TranslationNotifier(apiClient, db);
+  final auth = ref.watch(authProvider.notifier);
+  return TranslationNotifier(apiClient, db, (ban) => auth.setBan(ban));
 });

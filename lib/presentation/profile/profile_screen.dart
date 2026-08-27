@@ -10,9 +10,11 @@ import '../../core/l10n/locale_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/liquid_glass.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/admin_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/translation_provider.dart';
 import '../../providers/contexts_provider.dart';
+import '../../data/remote/github_service.dart';
 import '../admin/admin_screen.dart';
 import 'changelog_screen.dart';
 
@@ -231,44 +233,99 @@ class ProfileScreen extends ConsumerWidget {
             // Privacy
             Text(context.l.privacySection, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary, letterSpacing: 1.0)),
             const SizedBox(height: 10),
-            GestureDetector(
-              onTap: () async {
-                final confirmed = await showGlassDialog<bool>(context,
-                  title: Text(context.l.deleteDataTitle),
-                  content: Text(context.l.deleteDataMessage),
-                  actions: [
-                    TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.l.cancel)),
-                    GlassButton(primary: true, color: AppColors.danger, height: 44, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10), onPressed: () => Navigator.pop(context, true), child: Text(context.l.delete, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white))),
-                  ],
-                );
-                if (confirmed == true && context.mounted) {
-                  final db = ref.read(databaseProvider);
-                  await db.deleteAllTranslations();
-                  ref.read(contextsProvider.notifier).clearAll();
-                  ref.read(authProvider.notifier).signOut();
-                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l.dataDeleted)));
-                }
-              },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06), width: 1)),
-                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Icon(CupertinoIcons.trash, size: 15, color: isDark ? Colors.white38 : Colors.black38),
-                  const SizedBox(width: 8),
-                  Text(context.l.deleteAccount, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: isDark ? Colors.white54 : Colors.black45)),
-                ]),
-              ),
-            ),
             const SizedBox(height: 20),
 
             // About — App Info Card
             Text(context.l.aboutSection.toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary, letterSpacing: 1.0)),
             const SizedBox(height: 10),
             _AppInfoCard(accent: accent, isDark: isDark),
+            const SizedBox(height: 20),
+
+            // Ban banner (if banned)
+            if (user.isBanned) ...[
+              _BanBanner(ban: user.ban!, isDark: isDark),
+              const SizedBox(height: 20),
+            ],
+
+            // Delete account — moved to very bottom
+            GestureDetector(
+              onTap: user.isBanned
+                  ? null
+                  : () async {
+                      final confirmed = await showGlassDialog<bool>(context,
+                        title: Text(context.l.deleteDataTitle),
+                        content: Text(context.l.deleteDataMessage),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.l.cancel)),
+                          GlassButton(primary: true, color: AppColors.danger, height: 44, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10), onPressed: () => Navigator.pop(context, true), child: Text(context.l.delete, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white))),
+                        ],
+                      );
+                      if (confirmed == true && context.mounted) {
+                        final db = ref.read(databaseProvider);
+                        await db.deleteAllTranslations();
+                        ref.read(contextsProvider.notifier).clearAll();
+                        ref.read(authProvider.notifier).signOut();
+                        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l.dataDeleted)));
+                      }
+                    },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), border: Border.all(color: user.isBanned ? AppColors.danger.withValues(alpha: 0.3) : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06)), width: 1)),
+                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(CupertinoIcons.trash, size: 15, color: user.isBanned ? AppColors.danger : (isDark ? Colors.white38 : Colors.black38)),
+                  const SizedBox(width: 8),
+                  Text(user.isBanned ? context.l.deleteBlocked : context.l.deleteAccount, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: user.isBanned ? AppColors.danger : (isDark ? Colors.white54 : Colors.black45))),
+                ]),
+              ),
+            ),
             const SizedBox(height: 120),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _BanBanner extends StatelessWidget {
+  final BanInfo ban;
+  final bool isDark;
+
+  const _BanBanner({required this.ban, required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    final banText = ban.isPermanent
+        ? 'Вы заблокированы навсегда'
+        : ban.expiresAtDate != null
+            ? 'Блокировка до ${ban.expiresAtDate!.day}.${ban.expiresAtDate!.month}.${ban.expiresAtDate!.year}'
+            : 'Временная блокировка';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: AppColors.danger.withValues(alpha: 0.1),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.3), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(CupertinoIcons.exclamationmark_shield_fill, color: AppColors.danger, size: 18),
+            const SizedBox(width: 8),
+            Text(banText, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.danger)),
+          ]),
+          if (ban.reason.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text('Причина: ${ban.reason}', style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87)),
+          ],
+          if (ban.warningMessage.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(ban.warningMessage, style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : Colors.black54)),
+          ],
+        ],
       ),
     );
   }
@@ -405,20 +462,45 @@ class _AppInfoCard extends StatelessWidget {
               style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : Colors.black45)),
           const SizedBox(height: 16),
 
-          // Version badge
+          // Version badge + update check
           FutureBuilder<PackageInfo>(
             future: PackageInfo.fromPlatform(),
             builder: (context, snapshot) {
               final info = snapshot.data;
-              final v = info?.version ?? '...';
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: accent.withValues(alpha: 0.12),
-                ),
-                child: Text('${context.l.appInfoVersion} $v',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: accent)),
+              final localVersion = info?.version ?? '...';
+              return FutureBuilder<String?>(
+                future: GitHubService().getLatestVersion(),
+                builder: (context, vSnap) {
+                  final latest = vSnap.data;
+                  final isUpdate = latest != null && _isNewer(latest, localVersion);
+                  return Column(children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: isUpdate ? AppColors.success.withValues(alpha: 0.12) : accent.withValues(alpha: 0.12),
+                      ),
+                      child: Text('${context.l.appInfoVersion} $localVersion',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isUpdate ? AppColors.success : accent)),
+                    ),
+                    if (isUpdate) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: AppColors.success.withValues(alpha: 0.15),
+                        ),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          const Icon(CupertinoIcons.arrow_down_circle_fill, size: 13, color: AppColors.success),
+                          const SizedBox(width: 4),
+                          Text(context.l.appInfoUpdateAvailable,
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.success)),
+                        ]),
+                      ),
+                    ],
+                  ]);
+                },
               );
             },
           ),
@@ -478,5 +560,18 @@ class _AppInfoCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Compare two version strings "x.y.z". Returns true if a is newer than b.
+  bool _isNewer(String a, String b) {
+    int parse(String v) {
+      final match = RegExp(r'(\d+)\.(\d+)\.(\d+)').firstMatch(v);
+      if (match == null) return 0;
+      return (int.parse(match.group(1)!) * 100000) +
+          (int.parse(match.group(2)!) * 1000) +
+          int.parse(match.group(3)!);
+    }
+
+    return parse(a) > parse(b);
   }
 }

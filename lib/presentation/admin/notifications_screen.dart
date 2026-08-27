@@ -7,6 +7,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/liquid_glass.dart';
 import '../../data/remote/notification_service.dart';
 import '../../providers/admin_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
@@ -24,6 +25,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   @override
   void initState() {
     super.initState();
+    final user = ref.read(authProvider);
+    _service.setToken(user.idToken.isNotEmpty ? user.idToken : null);
     _loadNotifications();
   }
 
@@ -56,6 +59,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       ]),
       content: StatefulBuilder(
         builder: (context, setInner) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
           return SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -75,7 +79,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                                 ? AppColors.primaryBlue.withValues(alpha: 0.15)
                                 : Colors.transparent,
                             border: Border.all(
-                              color: sendToAll ? AppColors.primaryBlue : AppColors.lightSystemGray4,
+                              color: sendToAll ? AppColors.primaryBlue : AppColors.separator(isDark),
                             ),
                           ),
                           child: Center(
@@ -100,7 +104,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                                 ? AppColors.primaryBlue.withValues(alpha: 0.15)
                                 : Colors.transparent,
                             border: Border.all(
-                              color: !sendToAll ? AppColors.primaryBlue : AppColors.lightSystemGray4,
+                              color: !sendToAll ? AppColors.primaryBlue : AppColors.separator(isDark),
                             ),
                           ),
                           child: Center(

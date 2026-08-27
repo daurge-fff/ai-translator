@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'admin_provider.dart';
 
 class UserProfile {
   final String email;
@@ -9,6 +10,7 @@ class UserProfile {
   final bool isAdmin;
   final bool isAuthenticated;
   final String idToken;
+  final BanInfo? ban;
 
   const UserProfile({
     this.email = '',
@@ -17,7 +19,10 @@ class UserProfile {
     this.isAdmin = false,
     this.isAuthenticated = false,
     this.idToken = '',
+    this.ban,
   });
+
+  bool get isBanned => ban != null;
 
   UserProfile copyWith({
     String? email,
@@ -26,6 +31,7 @@ class UserProfile {
     bool? isAdmin,
     bool? isAuthenticated,
     String? idToken,
+    BanInfo? ban,
   }) {
     return UserProfile(
       email: email ?? this.email,
@@ -34,6 +40,7 @@ class UserProfile {
       isAdmin: isAdmin ?? this.isAdmin,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       idToken: idToken ?? this.idToken,
+      ban: ban ?? this.ban,
     );
   }
 }
@@ -85,6 +92,10 @@ class AuthNotifier extends StateNotifier<UserProfile> {
     } catch (e) {
       return e.toString();
     }
+  }
+
+  void setBan(BanInfo? ban) {
+    state = state.copyWith(ban: ban);
   }
 
   Future<void> signOut() async {

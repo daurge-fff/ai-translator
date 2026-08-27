@@ -56,4 +56,37 @@ class GitHubService {
       return [];
     }
   }
+
+  /// Derive the latest app version from the GitHub commit count.
+  /// Format: `1.major.minor` — build number = commit count.
+  /// Returns null on failure.
+  Future<String?> getLatestVersion() async {
+    try {
+      final response = await _dio.get(
+        '/repos/$_owner/$_repo/commits',
+        queryParameters: {'per_page': 1, 'sha': 'main'},
+      );
+      final headers = response.headers;
+      final link = headers.value('link');
+      if (link == null) return null;
+      // Extract last page number from Link header
+      final match = RegExp(r'page=(\d+)>;\s*rel="last"').firstMatch(link);
+      if (match == null) return null;
+      final totalCommits = int.parse(match.group(1)!);
+      return _versionFromBuild(totalCommits);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Compute a readable version string from a build number (commit count).
+  static String versionFromBuild(int build) => _versionFromBuild(build);
+
+  static String _versionFromBuild(int build) {
+    final major = 1;
+    final minor = build ~/ 1000;
+    final patch = (build % 1000) ~/ 10;
+    final suffix = build % 10;
+    return '$major.$minor.$patch+$suffix ($build)';
+  }
 }
