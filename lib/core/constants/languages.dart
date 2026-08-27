@@ -38,18 +38,20 @@ class _RuFlagSmall extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      'assets/flag_ru.png',
-      width: size * 1.6,
-      height: size * 1.1,
-      fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) => Text(
-        'РУ',
-        style: TextStyle(
-          fontSize: size * 0.5,
-          fontWeight: FontWeight.w800,
-          color: const Color(0xFF2D2D2D),
-          letterSpacing: 0.3,
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Image.asset(
+        'assets/flag_ru.png',
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Text(
+          'РУ',
+          style: TextStyle(
+            fontSize: size * 0.5,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF2D2D2D),
+            letterSpacing: 0.3,
+          ),
         ),
       ),
     );

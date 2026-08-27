@@ -25,7 +25,10 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_onTabChanged);
-    Future.microtask(() => ref.read(adminProvider.notifier).fetchIncidents());
+    Future.microtask(() {
+      ref.read(adminProvider.notifier).fetchIncidents();
+      ref.read(adminProvider.notifier).fetchBans();
+    });
   }
 
   void _onTabChanged() {
@@ -703,7 +706,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
                 icon: const Icon(CupertinoIcons.xmark_circle_fill,
                     color: Colors.grey, size: 20),
                 onPressed: () =>
-                    ref.read(adminProvider.notifier).removeBan(ban.value),
+                    ref.read(adminProvider.notifier).removeBan(ban.value, ban.type),
               ),
             ],
           ),

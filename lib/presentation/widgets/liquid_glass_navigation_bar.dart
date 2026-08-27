@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -130,72 +129,47 @@ class _LiquidGlassNavigationBarState
         mediaQuery.highContrast;
 
     final blurSigma = themeState.glassBlurSigma;
+
+    // ── iOS System Tab Bar surface ──────────────────────────────────
+    // No border, no specular highlight, no shadow.
+    // Just a clean translucent fill + subtle separator line on top.
     final surfaceColor = isDark
-        ? const Color(0xFF1C1C24).withValues(alpha: (themeState.glassOpacity + 0.15).clamp(0.0, 1.0))
-        : Colors.white.withValues(alpha: (themeState.glassOpacity + 0.15).clamp(0.0, 1.0));
-    final borderColor = isDark
-        ? Colors.white.withValues(alpha: 0.12)
-        : Colors.white.withValues(alpha: 0.55);
-    final specularTop = isDark
-        ? Colors.white.withValues(alpha: 0.07)
-        : Colors.white.withValues(alpha: 0.18);
+        ? const Color(0xFF1C1C1C).withValues(alpha: reduceGlass ? 1.0 : 0.92)
+        : const Color(0xFFF9F9F9).withValues(alpha: reduceGlass ? 1.0 : 0.94);
+    final separatorColor = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.black.withValues(alpha: 0.09);
 
     final content = GestureDetector(
       onHorizontalDragStart: _onDragStart,
       onHorizontalDragUpdate: _onDragUpdate,
       onHorizontalDragEnd: _onDragEnd,
-      child: Stack(
+      child: _itemsLayer(metrics, accent, isDark),
+    );
+
+    final decorated = Container(
+      decoration: BoxDecoration(color: surfaceColor),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Positioned.fill(
-            child: _SpecularHighlight(radius: metrics.radius, topColor: specularTop),
+          // Thin separator line (like iOS system tab bar)
+          Container(
+            height: 0.5,
+            color: separatorColor,
           ),
-          _itemsLayer(metrics, accent, isDark),
+          Expanded(child: content),
         ],
       ),
     );
 
-    final decorated = Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(metrics.radius),
-        color: reduceGlass
-            ? (isDark ? const Color(0xFF1C1C24) : Colors.white)
-            : surfaceColor,
-        border: Border.all(
-          color: reduceGlass
-              ? (isDark ? Colors.white12 : Colors.black12)
-              : borderColor,
-          width: 1,
-        ),
-      ),
-      child: content,
-    );
-
     final frosted = reduceGlass
         ? decorated
-        : ClipRRect(
-            borderRadius: BorderRadius.circular(metrics.radius),
+        : ClipRect(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
               child: decorated,
             ),
           );
-
-    final pill = Container(
-      height: metrics.height,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(metrics.radius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(
-              alpha: reduceGlass ? 0.10 : (isDark ? 0.28 : 0.07),
-            ),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: frosted,
-    );
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -210,6 +184,7 @@ class _LiquidGlassNavigationBarState
           constraints: const BoxConstraints(maxWidth: 560),
           child: SizedBox(
             width: double.infinity,
+            height: metrics.height,
             child: RepaintBoundary(
               child: AnimatedScale(
                 scale: widget.dimmed ? 0.96 : 1.0,
@@ -219,7 +194,10 @@ class _LiquidGlassNavigationBarState
                   opacity: widget.dimmed ? 0.82 : 1.0,
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeOutCubic,
-                  child: pill,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(metrics.radius),
+                    child: frosted,
+                  ),
                 ),
               ),
             ),
@@ -238,7 +216,7 @@ class _LiquidGlassNavigationBarState
         final indicatorWidth =
             itemWidth - metrics.indicatorHorizontalInset * 2;
         final indicatorHeight =
-            metrics.height - metrics.indicatorVerticalInset * 2;
+            metrics.height - metrics.indicatorVerticalInset * 2 - 0.5; // account for separator
 
         return Stack(
           clipBehavior: Clip.none,
@@ -263,7 +241,8 @@ class _LiquidGlassNavigationBarState
                     width: indicatorWidth,
                     height: indicatorHeight,
                     child: _SelectedIndicator(
-                      radius: metrics.radius,
+                      radius: indicatorHeight / 2,
+                      isDark: isDark,
                     ),
                   );
                 },
@@ -316,11 +295,13 @@ class _NavMetrics {
         platform == TargetPlatform.macOS;
 
     final width = mediaQuery.size.width;
-    final height = 62.0;
-    final horizontalMargin = (width * 0.05).clamp(16.0, 24.0).toDouble();
+    final height = 56.0;
+    final horizontalMargin = isApple
+        ? (width * 0.08).clamp(20.0, 32.0).toDouble()
+        : (width * 0.06).clamp(16.0, 28.0).toDouble();
     final bottomInset = mediaQuery.padding.bottom;
-    final bottomGap = isApple ? 12.0 : 8.0;
-    final radius = isApple ? height * 0.5 : 28.0;
+    final bottomGap = isApple ? 8.0 : 4.0;
+    final radius = height * 0.5;
 
     return _NavMetrics(
       height: height,
@@ -328,64 +309,30 @@ class _NavMetrics {
       horizontalMargin: horizontalMargin,
       bottomInset: bottomInset,
       bottomGap: bottomGap,
-      indicatorVerticalInset: 6.0,
-      indicatorHorizontalInset: 6.0,
-    );
-  }
-}
-
-class _SpecularHighlight extends StatelessWidget {
-  final double radius;
-  final Color topColor;
-
-  const _SpecularHighlight({required this.radius, required this.topColor});
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(radius),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            stops: const [0.0, 0.12, 0.6, 1.0],
-            colors: [
-              topColor,
-              topColor.withValues(alpha: 0.0),
-              Colors.transparent,
-              Colors.transparent,
-            ],
-          ),
-        ),
-      ),
+      indicatorVerticalInset: 4.0,
+      indicatorHorizontalInset: 4.0,
     );
   }
 }
 
 class _SelectedIndicator extends StatelessWidget {
   final double radius;
+  final bool isDark;
 
   const _SelectedIndicator({
     required this.radius,
+    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
-    final innerRadius = math.max(radius - 6, 20.0);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // iOS-style: subtle translucent fill, no border
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(innerRadius),
+        borderRadius: BorderRadius.circular(radius),
         color: isDark
             ? Colors.white.withValues(alpha: 0.10)
             : Colors.black.withValues(alpha: 0.06),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.08)
-              : Colors.black.withValues(alpha: 0.05),
-          width: 0.8,
-        ),
       ),
     );
   }
@@ -408,11 +355,12 @@ class _NavItemButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mutedColor = isDark
-        ? Colors.white.withValues(alpha: 0.70)
-        : const Color(0xFF6B6B70);
-    final iconColor = selected ? accent : mutedColor;
-    final labelColor = selected ? accent : mutedColor;
+    // iOS system: inactive = grey (0.6 opacity), active = accent/blue
+    final inactiveColor = isDark
+        ? Colors.white.withValues(alpha: 0.60)
+        : const Color(0xFF8E8E93);
+    final iconColor = selected ? accent : inactiveColor;
+    final labelColor = selected ? accent : inactiveColor;
 
     return Semantics(
       selected: selected,
@@ -424,34 +372,31 @@ class _NavItemButton extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AnimatedScale(
-              scale: selected ? 1.08 : 1.0,
-              duration: const Duration(milliseconds: 260),
+            TweenAnimationBuilder<Color?>(
+              tween: ColorTween(end: iconColor),
+              duration: const Duration(milliseconds: 200),
               curve: Curves.easeOutCubic,
-              child: TweenAnimationBuilder<Color?>(
-                tween: ColorTween(end: iconColor),
-                duration: const Duration(milliseconds: 240),
-                curve: Curves.easeOutCubic,
-                builder: (context, color, child) => Icon(
-                  selected ? item.activeIcon : item.icon,
-                  size: 23,
-                  color: color ?? iconColor,
-                ),
+              builder: (context, color, child) => Icon(
+                selected ? item.activeIcon : item.icon,
+                size: 22,
+                color: color ?? iconColor,
               ),
             ),
-            const SizedBox(height: 3),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 240),
+            const SizedBox(height: 2),
+            TweenAnimationBuilder<Color?>(
+              tween: ColorTween(end: labelColor),
+              duration: const Duration(milliseconds: 200),
               curve: Curves.easeOutCubic,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                color: labelColor,
-              ),
-              child: Text(
+              builder: (context, color, child) => Text(
                 item.label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                  color: color ?? labelColor,
+                  letterSpacing: 0.1,
+                ),
               ),
             ),
           ],

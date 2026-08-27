@@ -56,4 +56,25 @@ class ApiClient {
     final response = await _dio.get(ApiConstants.adminIncidentsEndpoint);
     return response.data['incidents'] ?? [];
   }
+
+  Future<List<Map<String, dynamic>>> fetchBans() async {
+    final response = await _dio.get(ApiConstants.adminAccessControlEndpoint);
+    final data = response.data;
+    final List<Map<String, dynamic>> all = [];
+    final users = data['bannedUsers'] ?? {};
+    final devices = data['bannedDevices'] ?? {};
+    final ips = data['bannedIPs'] ?? {};
+    if (users is Map) users.forEach((k, v) => all.add({...Map<String, dynamic>.from(v), 'type': 'user'}));
+    if (devices is Map) devices.forEach((k, v) => all.add({...Map<String, dynamic>.from(v), 'type': 'device'}));
+    if (ips is Map) ips.forEach((k, v) => all.add({...Map<String, dynamic>.from(v), 'type': 'ip'}));
+    return all;
+  }
+
+  Future<void> addBan(String value, String type, String reason) async {
+    await _dio.post(ApiConstants.adminBansEndpoint, data: {'value': value, 'type': type, 'reason': reason});
+  }
+
+  Future<void> removeBan(String value, String type) async {
+    await _dio.delete('${ApiConstants.adminBansEndpoint}/$type/$value');
+  }
 }

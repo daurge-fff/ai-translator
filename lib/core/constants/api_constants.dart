@@ -12,4 +12,6 @@ class ApiConstants {
   static const String translateEndpoint = '/api/translate';
   static const String adminIncidentsEndpoint = '/api/admin/incidents';
   static const String adminConfigEndpoint = '/api/admin/config';
+  static const String adminAccessControlEndpoint = '/api/admin/access-control';
+  static const String adminBansEndpoint = '/api/admin/bans';
 }

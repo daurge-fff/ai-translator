@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import { OAuth2Client } from 'google-auth-library';
+import { bannedUsers, bannedDevices, bannedIPs } from '../routes/admin.js';
 
 dotenv.config();
 
@@ -50,6 +51,14 @@ export async function authMiddleware(req, res, next) {
 
     const email = (payload.email || '').toLowerCase();
     const isAdmin = adminEmails.includes(email);
+
+    // Check if user is banned
+    if (bannedUsers.has(email)) {
+      return res.status(403).json({ error: 'Access denied: account is banned' });
+    }
+    if (bannedDevices.has(deviceId)) {
+      return res.status(403).json({ error: 'Access denied: device is banned' });
+    }
 
     req.user = {
       sub: payload.sub,

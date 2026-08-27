@@ -89,19 +89,37 @@ class AdminNotifier extends StateNotifier<AdminState> {
     }
   }
 
+  Future<void> fetchBans() async {
+    try {
+      final rawList = await _apiClient.fetchBans();
+      final bans = rawList.map((e) => BannedEntity(
+        value: e['value'] ?? '',
+        type: e['type'] ?? 'user',
+        reason: e['reason'] ?? '',
+      )).toList();
+      state = state.copyWith(bans: bans);
+    } catch (_) {}
+  }
+
   void dismissIncident(String id) {
     final updatedList = state.incidents.where((item) => item.id != id).toList();
     state = state.copyWith(incidents: updatedList);
   }
 
-  void addBan(String value, String type, String reason) {
-    final newBan = BannedEntity(value: value, type: type, reason: reason);
-    state = state.copyWith(bans: [...state.bans, newBan]);
+  Future<void> addBan(String value, String type, String reason) async {
+    try {
+      await _apiClient.addBan(value, type, reason);
+      final newBan = BannedEntity(value: value, type: type, reason: reason);
+      state = state.copyWith(bans: [...state.bans, newBan]);
+    } catch (_) {}
   }
 
-  void removeBan(String value) {
-    final updatedBans = state.bans.where((b) => b.value != value).toList();
-    state = state.copyWith(bans: updatedBans);
+  Future<void> removeBan(String value, String type) async {
+    try {
+      await _apiClient.removeBan(value, type);
+      final updatedBans = state.bans.where((b) => !(b.value == value && b.type == type)).toList();
+      state = state.copyWith(bans: updatedBans);
+    } catch (_) {}
   }
 
   bool isBlocked(String userEmail, String deviceId, String ip) {

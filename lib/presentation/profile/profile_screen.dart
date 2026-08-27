@@ -20,11 +20,11 @@ class ProfileScreen extends ConsumerWidget {
 
   Widget _avatarLetter(UserProfile user, Color accent) {
     return Container(
-      color: accent,
+      color: accent.withValues(alpha: 0.2),
       alignment: Alignment.center,
       child: Text(
         user.displayName.isNotEmpty ? user.displayName[0].toUpperCase() : '?',
-        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: accent),
       ),
     );
   }
@@ -82,9 +82,19 @@ class ProfileScreen extends ConsumerWidget {
                   Container(
                     width: 56, height: 56,
                     decoration: BoxDecoration(shape: BoxShape.circle, color: accent.withValues(alpha: isDark ? 0.30 : 0.18), border: Border.all(color: accent.withValues(alpha: 0.4), width: 2)),
-                    child: user.avatarUrl.isNotEmpty
-                        ? ClipOval(child: Image.network(user.avatarUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _avatarLetter(user, accent)))
-                        : _avatarLetter(user, accent),
+                    child: ClipOval(
+                      child: user.avatarUrl.isNotEmpty
+                          ? Image.network(
+                              user.avatarUrl,
+                              fit: BoxFit.cover,
+                              loadingBuilder: (_, child, progress) {
+                                if (progress == null) return child;
+                                return Center(child: CircularProgressIndicator(strokeWidth: 2, color: accent));
+                              },
+                              errorBuilder: (_, __, ___) => _avatarLetter(user, accent),
+                            )
+                          : _avatarLetter(user, accent),
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
