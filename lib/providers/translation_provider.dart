@@ -4,20 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' as drift;
 import '../data/local/database.dart';
 import '../data/remote/api_client.dart';
-import 'admin_provider.dart';
+import 'api_client_provider.dart';
 import 'auth_provider.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) => AppDatabase());
-
-/// Global API client. The auth token is synced here so every consumer
-/// (translate, admin, notifications) always sends a valid token.
-final apiClientProvider = Provider<ApiClient>((ref) {
-  final client = ApiClient();
-  ref.listen(authProvider, (prev, next) {
-    client.setIdToken(next.idToken.isNotEmpty ? next.idToken : null);
-  }, fireImmediately: true);
-  return client;
-});
 
 class TranslationState {
   final String sourceText;

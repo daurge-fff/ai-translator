@@ -57,26 +57,31 @@ class GitHubService {
     }
   }
 
-  /// Derive the latest app version from the GitHub commit count.
-  /// Format: `1.<minor>.<patch>` where minor = commits~/100, patch = commits%100.
-  /// Returns null on failure.
-  Future<String?> getLatestVersion() async {
+  /// Total number of commits on the main branch. Returns null on failure.
+  Future<int?> getLatestCommitCount() async {
     try {
       final response = await _dio.get(
         '/repos/$_owner/$_repo/commits',
         queryParameters: {'per_page': 1, 'sha': 'main'},
       );
-      final headers = response.headers;
-      final link = headers.value('link');
+      final link = response.headers.value('link');
       if (link == null) return null;
       // Extract last page number from Link header
       final match = RegExp(r'page=(\d+)>;\s*rel="last"').firstMatch(link);
       if (match == null) return null;
-      final totalCommits = int.parse(match.group(1)!);
-      return _versionFromBuild(totalCommits);
+      return int.tryParse(match.group(1)!);
     } catch (_) {
       return null;
     }
+  }
+
+  /// Derive the latest app version from the GitHub commit count.
+  /// Format: `1.<minor>.<patch>` where minor = commits~/100, patch = commits%100.
+  /// Returns null on failure.
+  Future<String?> getLatestVersion() async {
+    final count = await getLatestCommitCount();
+    if (count == null) return null;
+    return _versionFromBuild(count);
   }
 
   /// Compute a readable version string from a build number (commit count).

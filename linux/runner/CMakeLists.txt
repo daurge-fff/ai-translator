@@ -24,3 +24,20 @@ target_link_libraries(${BINARY_NAME} PRIVATE flutter)
 target_link_libraries(${BINARY_NAME} PRIVATE PkgConfig::GTK)
 
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
+
+# Embed the application icon as a GResource so it can be shown on the window.
+find_program(GLIB_COMPILE_RESOURCES glib-compile-resources REQUIRED)
+set(LINUX_RESOURCE_XML "${CMAKE_CURRENT_SOURCE_DIR}/resources/resources.gresource.xml")
+add_custom_command(
+  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/resources.c"
+  COMMAND ${GLIB_COMPILE_RESOURCES}
+  ARGS --sourcedir="${CMAKE_CURRENT_SOURCE_DIR}/resources"
+       --generate-source
+       --target="${CMAKE_CURRENT_BINARY_DIR}/resources.c"
+       "${LINUX_RESOURCE_XML}"
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/resources/icon.png" "${LINUX_RESOURCE_XML}"
+  VERBATIM
+)
+add_custom_target(resources_gresource DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/resources.c")
+add_dependencies(${BINARY_NAME} resources_gresource)
+target_sources(${BINARY_NAME} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/resources.c")

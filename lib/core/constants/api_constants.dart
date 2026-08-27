@@ -19,4 +19,5 @@ class ApiConstants {
   static const String notificationsEndpoint = '/api/notifications';
   static const String notificationsAllEndpoint = '/api/notifications/all';
   static const String notificationsSendEndpoint = '/api/notifications/send';
+  static const String banStatusEndpoint = '/api/ban/status';
 }

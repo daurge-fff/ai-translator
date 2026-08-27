@@ -11,7 +11,7 @@ import '../../core/constants/languages.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/liquid_glass.dart';
 import '../../providers/translation_provider.dart';
-import '../../providers/admin_provider.dart';
+import '../../data/remote/api_client.dart';
 import '../../providers/contexts_provider.dart';
 import '../widgets/language_selector_sheet.dart';
 

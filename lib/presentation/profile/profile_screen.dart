@@ -3,15 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/l10n/app_strings.dart';
 import '../../core/l10n/locale_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/liquid_glass.dart';
+import '../../data/remote/api_client.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/admin_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/translation_provider.dart';
 import '../../providers/contexts_provider.dart';
@@ -219,7 +218,10 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(height: 10),
               GlassButton(
                 width: double.infinity, height: 54,
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminScreen())),
+                onPressed: () async {
+                  await Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminScreen()));
+                  if (context.mounted) ref.read(authProvider.notifier).refreshBanStatus();
+                },
                 child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   const Icon(CupertinoIcons.shield_fill, color: AppColors.danger, size: 18),
                   const SizedBox(width: 10),
@@ -445,25 +447,23 @@ class _AppInfoCardState extends State<_AppInfoCard> {
   }
 
   Future<void> _loadVersion() async {
-    final prefs = await SharedPreferences.getInstance();
     final info = await PackageInfo.fromPlatform();
-    final latest = await GitHubService().getLatestVersion();
+    final github = GitHubService();
+    final latestCount = await github.getLatestCommitCount();
 
-    // The installed version is remembered on first run. If GitHub has
-    // more commits than at install time → an update is available.
-    var installed = prefs.getString('installed_version');
-    if (installed == null && latest != null) {
-      installed = latest;
-      await prefs.setString('installed_version', latest);
-    }
+    // Current version = derived from the build number (commit count at build
+    // time, set by `dart run tool/update_version.dart`). Same scheme as the
+    // latest version so the comparison is exact.
+    final currentBuild = int.tryParse(info.buildNumber) ?? 0;
+    final currentVersion = GitHubService.versionFromBuild(currentBuild);
+    final latestVersion =
+        latestCount != null ? GitHubService.versionFromBuild(latestCount) : null;
 
     if (!mounted) return;
     setState(() {
-      // Show the commit-derived version (latest at install time) as the
-      // current app version, matching what the developer actually runs.
-      _localVersion = installed ?? latest ?? info.version;
-      _githubLatest = latest;
-      _isUpdate = latest != null && installed != null && _isNewer(latest, installed);
+      _localVersion = currentVersion;
+      _githubLatest = latestVersion;
+      _isUpdate = latestCount != null && currentBuild > 0 && latestCount > currentBuild;
       _loaded = true;
     });
   }
@@ -601,18 +601,5 @@ class _AppInfoCardState extends State<_AppInfoCard> {
         ),
       ),
     );
-  }
-
-  /// Compare two version strings "x.y.z". Returns true if a is newer than b.
-  bool _isNewer(String a, String b) {
-    int parse(String v) {
-      final match = RegExp(r'(\d+)\.(\d+)\.(\d+)').firstMatch(v);
-      if (match == null) return 0;
-      return (int.parse(match.group(1)!) * 100000) +
-          (int.parse(match.group(2)!) * 1000) +
-          int.parse(match.group(3)!);
-    }
-
-    return parse(a) > parse(b);
   }
 }

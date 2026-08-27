@@ -75,9 +75,31 @@ class MainNavigationShell extends ConsumerStatefulWidget {
   ConsumerState<MainNavigationShell> createState() => _MainNavigationShellState();
 }
 
-class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
+class _MainNavigationShellState extends ConsumerState<MainNavigationShell>
+    with WidgetsBindingObserver {
   int _currentIndex = 0;
   bool _navDimmed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Refresh the ban status when returning to the app so a ban that was
+    // lifted (or added) elsewhere is reflected without restarting.
+    if (state == AppLifecycleState.resumed) {
+      ref.read(authProvider.notifier).refreshBanStatus();
+    }
+  }
 
   Color get _bottomFade => Theme.of(context).scaffoldBackgroundColor;
 
@@ -170,6 +192,11 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
                     _currentIndex = index;
                     _navDimmed = false;
                   });
+                  if (index == 3) {
+                    // Profile tab: re-check the ban status so an unbanned
+                    // account stops showing the ban banner.
+                    ref.read(authProvider.notifier).refreshBanStatus();
+                  }
                 },
                 items: [
                   NavigationItem(

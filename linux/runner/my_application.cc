@@ -5,6 +5,8 @@
 #include <gdk/gdkx.h>
 #endif
 
+#include <gdk-pixbuf/gdk-pixbuf.h>
+
 #include "flutter/generated_plugin_registrant.h"
 
 struct _MyApplication {
@@ -19,11 +21,28 @@ static void first_frame_cb(MyApplication* self, FlView* view) {
   gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
 }
 
+// Sets the application window icon from the embedded GResource.
+static void my_application_set_window_icon(GtkWindow* window) {
+  GError* error = nullptr;
+  GdkPixbuf* pixbuf =
+      gdk_pixbuf_new_from_resource("/org/slowglot/app/icon.png", &error);
+  if (pixbuf != nullptr) {
+    gtk_window_set_icon(window, pixbuf);
+    g_object_unref(pixbuf);
+  } else {
+    g_warning("Failed to load application icon: %s",
+              error ? error->message : "unknown");
+    g_clear_error(&error);
+  }
+}
+
 // Implements GApplication::activate.
 static void my_application_activate(GApplication* application) {
   MyApplication* self = MY_APPLICATION(application);
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
+
+  my_application_set_window_icon(window);
 
   // Use a header bar when running in GNOME as this is the common style used
   // by applications and is the setup most users will be using (e.g. Ubuntu
@@ -45,11 +64,11 @@ static void my_application_activate(GApplication* application) {
   if (use_header_bar) {
     GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
     gtk_widget_show(GTK_WIDGET(header_bar));
-    gtk_header_bar_set_title(header_bar, "ai_translator");
+    gtk_header_bar_set_title(header_bar, "Slowglot");
     gtk_header_bar_set_show_close_button(header_bar, TRUE);
     gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));
   } else {
-    gtk_window_set_title(window, "ai_translator");
+    gtk_window_set_title(window, "Slowglot");
   }
 
   gtk_window_set_default_size(window, 1280, 720);

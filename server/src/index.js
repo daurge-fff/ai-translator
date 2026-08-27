@@ -11,6 +11,7 @@ import translateRouter from './routes/translate.js';
 import configRouter from './routes/config.js';
 import adminRouter from './routes/admin.js';
 import notificationsRouter from './routes/notifications.js';
+import banStatusRouter from './routes/banStatus.js';
 
 dotenv.config();
 
@@ -57,6 +58,7 @@ app.use('/api/translate', translateRouter);
 app.use('/api/config', configRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/notifications', notificationsRouter);
+app.use('/api/ban', banStatusRouter);
 
 // Global error handler
 app.use((err, req, res, next) => {

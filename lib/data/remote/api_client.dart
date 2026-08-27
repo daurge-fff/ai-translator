@@ -10,6 +10,32 @@ class BanException implements Exception {
   BanException({this.reason = '', this.warningMessage = '', this.expiresAt});
 }
 
+class BanInfo {
+  final String reason;
+  final String warningMessage;
+  final String? expiresAt;
+
+  BanInfo({this.reason = '', this.warningMessage = '', this.expiresAt});
+
+  DateTime? get expiresAtDate {
+    if (expiresAt == null || expiresAt!.isEmpty) return null;
+    return DateTime.tryParse(expiresAt!);
+  }
+
+  bool get isPermanent => expiresAt == null || expiresAt!.isEmpty;
+
+  static BanInfo? tryParse(Object error) {
+    if (error is BanException) {
+      return BanInfo(
+        reason: error.reason,
+        warningMessage: error.warningMessage,
+        expiresAt: error.expiresAt,
+      );
+    }
+    return null;
+  }
+}
+
 class ApiClient {
   late final Dio _dio;
   String? _idToken;
@@ -111,5 +137,22 @@ class ApiClient {
 
   Future<void> removeBan(String value, String type) async {
     await _dio.delete('${ApiConstants.adminBansEndpoint}/$type/${Uri.encodeComponent(value)}');
+  }
+
+  /// Checks the current user's ban status against the server.
+  /// Returns a [BanInfo] if banned, otherwise null.
+  Future<BanInfo?> fetchBanStatus() async {
+    try {
+      final response = await _dio.get(ApiConstants.banStatusEndpoint);
+      final data = response.data;
+      if (data is! Map || data['banned'] != true) return null;
+      return BanInfo(
+        reason: data['reason'] ?? '',
+        warningMessage: data['warningMessage'] ?? '',
+        expiresAt: data['expiresAt'],
+      );
+    } catch (_) {
+      return null;
+    }
   }
 }

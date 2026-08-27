@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'admin_provider.dart';
+import '../data/remote/api_client.dart';
+import 'api_client_provider.dart';
 
 class UserProfile {
   final String email;
@@ -56,7 +57,9 @@ class AuthNotifier extends StateNotifier<UserProfile> {
   static const String _iosClientId =
       '841057078666-7ro3biov52o9sspkr5p7v1mkaejsbu2l.apps.googleusercontent.com';
 
-  AuthNotifier() : super(const UserProfile()) {
+  final Ref _ref;
+
+  AuthNotifier(this._ref) : super(const UserProfile()) {
     _googleSignIn = GoogleSignIn(
       clientId: kIsWeb
           ? _webClientId
@@ -100,6 +103,19 @@ class AuthNotifier extends StateNotifier<UserProfile> {
     state = state.copyWith(ban: ban);
   }
 
+  /// Re-checks the ban status against the server and updates the local state,
+  /// so a removed/expired ban is cleared without restarting the app.
+  Future<void> refreshBanStatus() async {
+    if (!state.isAuthenticated || state.idToken.isEmpty) return;
+    final api = _ref.read(apiClientProvider);
+    final ban = await api.fetchBanStatus();
+    if (ban != null) {
+      state = state.copyWith(ban: ban);
+    } else {
+      state = state.copyWith(ban: null);
+    }
+  }
+
   Future<void> signOut() async {
     try {
       await _googleSignIn.signOut();
@@ -111,5 +127,5 @@ class AuthNotifier extends StateNotifier<UserProfile> {
 }
 
 final authProvider = StateNotifierProvider<AuthNotifier, UserProfile>(
-  (ref) => AuthNotifier(),
+  (ref) => AuthNotifier(ref),
 );

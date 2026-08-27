@@ -1,7 +1,7 @@
 name: ai_translator
 description: "Cross-platform Contextual AI Translator with Liquid Glass design."
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.0+16
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -41,6 +41,27 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   drift_dev: ^2.24.1
   build_runner: ^2.4.14
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/icon.png"
+  min_sdk_android: 21
+  web:
+    generate: true
+    image_path: "assets/icon.png"
+    background_color: "#0D0D14"
+    theme_color: "#0D0D14"
+  windows:
+    generate: true
+    image_path: "assets/icon.png"
+    icon_size: 256
+  macos:
+    generate: true
+    image_path: "assets/icon.png"
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
