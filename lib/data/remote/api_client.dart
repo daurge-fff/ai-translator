@@ -110,6 +110,6 @@ class ApiClient {
   }
 
   Future<void> removeBan(String value, String type) async {
-    await _dio.delete('${ApiConstants.adminBansEndpoint}/$type/$value');
+    await _dio.delete('${ApiConstants.adminBansEndpoint}/$type/${Uri.encodeComponent(value)}');
   }
 }

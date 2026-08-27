@@ -58,7 +58,7 @@ class GitHubService {
   }
 
   /// Derive the latest app version from the GitHub commit count.
-  /// Format: `1.major.minor` — build number = commit count.
+  /// Format: `1.<minor>.<patch>` where minor = commits~/100, patch = commits%100.
   /// Returns null on failure.
   Future<String?> getLatestVersion() async {
     try {
@@ -84,9 +84,8 @@ class GitHubService {
 
   static String _versionFromBuild(int build) {
     final major = 1;
-    final minor = build ~/ 1000;
-    final patch = (build % 1000) ~/ 10;
-    final suffix = build % 10;
-    return '$major.$minor.$patch+$suffix ($build)';
+    final minor = build ~/ 100;
+    final patch = build % 100;
+    return '$major.$minor.$patch';
   }
 }

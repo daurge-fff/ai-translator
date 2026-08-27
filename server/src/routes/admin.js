@@ -97,8 +97,9 @@ router.post('/bans', (req, res) => {
 router.delete('/bans/:type/:value', (req, res) => {
   const { type, value } = req.params;
   const store = type === 'user' ? bannedUsers : type === 'device' ? bannedDevices : bannedIPs;
-  store.delete(decodeURIComponent(value).toLowerCase());
-  warnings.delete(`${type}:${decodeURIComponent(value)}`);
+  const decoded = value;
+  store.delete(decoded.toLowerCase());
+  warnings.delete(`${type}:${decoded}`);
   res.json({ success: true });
 });
 

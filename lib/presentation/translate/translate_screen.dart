@@ -11,6 +11,7 @@ import '../../core/constants/languages.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/liquid_glass.dart';
 import '../../providers/translation_provider.dart';
+import '../../providers/admin_provider.dart';
 import '../../providers/contexts_provider.dart';
 import '../widgets/language_selector_sheet.dart';
 
@@ -512,7 +513,9 @@ class _TranslateScreenState extends ConsumerState<TranslateScreen> {
                         ),
                         const SizedBox(height: 12),
 
-                        if (trState.errorMessage != null)
+                        if (trState.ban != null)
+                          _BanMessage(ban: trState.ban!)
+                        else if (trState.errorMessage != null)
                           Text(
                             trState.errorMessage!,
                             style: const TextStyle(
@@ -596,6 +599,84 @@ class _TranslateScreenState extends ConsumerState<TranslateScreen> {
             ),
           ],
         ),
+    );
+  }
+}
+
+class _BanMessage extends StatelessWidget {
+  final BanInfo ban;
+  const _BanMessage({required this.ban});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l = AppStrings.of(context);
+    final isRu = l.isRu;
+
+    // Date + time formatting with proper locale
+    final expires = ban.expiresAtDate?.toLocal();
+    final now = DateTime.now();
+    final daysLeft = expires?.difference(now).inDays;
+    final hoursLeft = expires == null ? null : expires.difference(now).inHours % 24;
+
+    final String whenText;
+    if (expires == null) {
+      whenText = isRu ? 'скоро' : 'soon';
+    } else if (daysLeft! > 0) {
+      whenText = isRu
+          ? 'через $daysLeft дн. $hoursLeft ч.'
+          : 'in $daysLeft d $hoursLeft h';
+    } else {
+      final date = '${expires.day.toString().padLeft(2, '0')}.${expires.month.toString().padLeft(2, '0')}.${expires.year}';
+      final time = '${expires.hour.toString().padLeft(2, '0')}:${expires.minute.toString().padLeft(2, '0')}';
+      whenText = isRu ? 'до $date в $time' : 'until $date at $time';
+    }
+
+    final reason = ban.reason.isEmpty
+        ? (isRu ? 'нарушение правил' : 'rules violation')
+        : ban.reason;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: AppColors.danger.withValues(alpha: 0.1),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.3), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(CupertinoIcons.exclamationmark_shield_fill, color: AppColors.danger, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                ban.isPermanent
+                    ? (isRu ? 'Вы заблокированы навсегда' : 'You are permanently banned')
+                    : (isRu ? 'Вы временно заблокированы' : 'You are temporarily banned'),
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.danger),
+              ),
+            ),
+          ]),
+          if (!ban.isPermanent) ...[
+            const SizedBox(height: 8),
+            Text(
+              '${isRu ? 'Срок' : 'Until'}: $whenText',
+              style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87),
+            ),
+          ],
+          const SizedBox(height: 6),
+          Text(
+            '${isRu ? 'Причина' : 'Reason'}: $reason',
+            style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87),
+          ),
+          if (ban.warningMessage.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(ban.warningMessage, style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : Colors.black54)),
+          ],
+        ],
+      ),
     );
   }
 }

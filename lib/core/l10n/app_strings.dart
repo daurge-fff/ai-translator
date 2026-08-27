@@ -164,11 +164,13 @@ class AppStrings {
   String get appInfoVersion => t('Version', 'Версия');
   String get appInfoUpToDate => t('Up to date', 'Последняя версия');
   String get appInfoUpdateAvailable => t('Update available', 'Доступно обновление');
+  String get appInfoLatest => t('Latest', 'Актуальная');
   String get serverUnavailable => t('Server unavailable', 'Сервер недоступен');
   String get incidentTitle => t('Incident', 'Инцидент');
   String get translationErrorPrefix => t('Translation error: ', 'Ошибка перевода: ');
   String get deleteBlocked => t('Account deletion is blocked (banned)', 'Удаление заблокировано (бан)');
   String get banPermanentText => t('You are permanently banned', 'Вы заблокированы навсегда');
+  String get banTemporaryText => t('Temporary ban', 'Временная блокировка');
   String get banUntilText => t('Banned until', 'Блокировка до');
   String get banReasonText => t('Reason:', 'Причина:');
 }

@@ -19,6 +19,7 @@ class TranslationState {
   final String regionalVariant;
   final bool isLoading;
   final String? errorMessage;
+  final BanInfo? ban;
 
   TranslationState({
     this.sourceText = '',
@@ -29,6 +30,7 @@ class TranslationState {
     this.regionalVariant = '',
     this.isLoading = false,
     this.errorMessage,
+    this.ban,
   });
 
   TranslationState copyWith({
@@ -40,6 +42,7 @@ class TranslationState {
     String? regionalVariant,
     bool? isLoading,
     String? errorMessage,
+    BanInfo? ban,
   }) {
     return TranslationState(
       sourceText: sourceText ?? this.sourceText,
@@ -50,6 +53,7 @@ class TranslationState {
       regionalVariant: regionalVariant ?? this.regionalVariant,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
+      ban: ban ?? this.ban,
     );
   }
 }
@@ -166,7 +170,7 @@ class TranslationNotifier extends StateNotifier<TranslationState> {
         _onBan(ban);
         state = state.copyWith(
           isLoading: false,
-          errorMessage: _formatBanMessage(ban),
+          ban: ban,
         );
       } else {
         state = state.copyWith(
@@ -175,20 +179,6 @@ class TranslationNotifier extends StateNotifier<TranslationState> {
         );
       }
     }
-  }
-
-  String _formatBanMessage(BanInfo ban) {
-    if (ban.isPermanent) {
-      return 'Вы заблокированы навсегда.\n\nПричина: ${ban.reason.isEmpty ? 'нарушение правил' : ban.reason}';
-    }
-    final expires = ban.expiresAtDate?.toLocal();
-    final daysLeft = expires != null ? (expires.difference(DateTime.now()).inDays) : null;
-    final when = daysLeft != null && daysLeft > 0
-        ? 'через $daysLeft дн.'
-        : expires != null
-            ? '${expires.day}.${expires.month}.${expires.year} в ${expires.hour}:${expires.minute.toString().padLeft(2, '0')}'
-            : 'скоро';
-    return 'Вы временно заблокированы.\n\nСрок: до $when\nПричина: ${ban.reason.isEmpty ? 'нарушение правил' : ban.reason}';
   }
 }
 

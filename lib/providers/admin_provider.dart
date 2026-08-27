@@ -147,8 +147,7 @@ class AdminNotifier extends StateNotifier<AdminState> {
   Future<void> removeBan(String value, String type) async {
     try {
       await _apiClient.removeBan(value, type);
-      final updatedBans = state.bans.where((b) => !(b.value == value && b.type == type)).toList();
-      state = state.copyWith(bans: updatedBans);
+      await fetchBans();
     } catch (_) {}
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/l10n/app_strings.dart';
@@ -230,11 +231,6 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(height: 20),
             ],
 
-            // Privacy
-            Text(context.l.privacySection, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary, letterSpacing: 1.0)),
-            const SizedBox(height: 10),
-            const SizedBox(height: 20),
-
             // About — App Info Card
             Text(context.l.aboutSection.toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary, letterSpacing: 1.0)),
             const SizedBox(height: 10),
@@ -295,11 +291,20 @@ class _BanBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppStrings.of(context);
+    final expires = ban.expiresAtDate?.toLocal();
+    final String dateText;
+    if (expires != null) {
+      dateText = '${expires.day.toString().padLeft(2, '0')}.${expires.month.toString().padLeft(2, '0')}.${expires.year}';
+    } else {
+      dateText = '';
+    }
+
     final banText = ban.isPermanent
-        ? 'Вы заблокированы навсегда'
-        : ban.expiresAtDate != null
-            ? 'Блокировка до ${ban.expiresAtDate!.day}.${ban.expiresAtDate!.month}.${ban.expiresAtDate!.year}'
-            : 'Временная блокировка';
+        ? l.banPermanentText
+        : dateText.isNotEmpty
+            ? '${l.banUntilText} $dateText'
+            : l.banTemporaryText;
 
     return Container(
       width: double.infinity,
@@ -319,7 +324,7 @@ class _BanBanner extends StatelessWidget {
           ]),
           if (ban.reason.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Text('Причина: ${ban.reason}', style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87)),
+            Text('${l.banReasonText} ${ban.reason}', style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87)),
           ],
           if (ban.warningMessage.isNotEmpty) ...[
             const SizedBox(height: 6),
@@ -417,14 +422,56 @@ class _LangFlagButton extends StatelessWidget {
   }
 }
 
-class _AppInfoCard extends StatelessWidget {
+class _AppInfoCard extends StatefulWidget {
   final Color accent;
   final bool isDark;
 
   const _AppInfoCard({required this.accent, required this.isDark});
 
   @override
+  State<_AppInfoCard> createState() => _AppInfoCardState();
+}
+
+class _AppInfoCardState extends State<_AppInfoCard> {
+  String? _githubLatest;
+  String _localVersion = '...';
+  bool _isUpdate = false;
+  bool _loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    final prefs = await SharedPreferences.getInstance();
+    final info = await PackageInfo.fromPlatform();
+    final local = info.version;
+    final latest = await GitHubService().getLatestVersion();
+
+    // The installed version is remembered on first run. If GitHub has
+    // more commits than at install time → an update is available.
+    final installed = prefs.getString('installed_version');
+    if (installed == null && latest != null) {
+      await prefs.setString('installed_version', latest);
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _localVersion = local;
+      _githubLatest = latest;
+      final reference = installed ?? latest ?? local;
+      _isUpdate = latest != null && _isNewer(latest, reference);
+      _loaded = true;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final accent = widget.accent;
+    final isDark = widget.isDark;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -463,47 +510,40 @@ class _AppInfoCard extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Version badge + update check
-          FutureBuilder<PackageInfo>(
-            future: PackageInfo.fromPlatform(),
-            builder: (context, snapshot) {
-              final info = snapshot.data;
-              final localVersion = info?.version ?? '...';
-              return FutureBuilder<String?>(
-                future: GitHubService().getLatestVersion(),
-                builder: (context, vSnap) {
-                  final latest = vSnap.data;
-                  final isUpdate = latest != null && _isNewer(latest, localVersion);
-                  return Column(children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: isUpdate ? AppColors.success.withValues(alpha: 0.12) : accent.withValues(alpha: 0.12),
-                      ),
-                      child: Text('${context.l.appInfoVersion} $localVersion',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isUpdate ? AppColors.success : accent)),
-                    ),
-                    if (isUpdate) ...[
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: AppColors.success.withValues(alpha: 0.15),
-                        ),
-                        child: Row(mainAxisSize: MainAxisSize.min, children: [
-                          const Icon(CupertinoIcons.arrow_down_circle_fill, size: 13, color: AppColors.success),
-                          const SizedBox(width: 4),
-                          Text(context.l.appInfoUpdateAvailable,
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.success)),
-                        ]),
-                      ),
-                    ],
-                  ]);
-                },
-              );
-            },
-          ),
+          if (!_loaded)
+            const SizedBox(height: 10, width: 10, child: CircularProgressIndicator(strokeWidth: 2))
+          else ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: _isUpdate ? AppColors.success.withValues(alpha: 0.12) : accent.withValues(alpha: 0.12),
+              ),
+              child: Text('${context.l.appInfoVersion} $_localVersion',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _isUpdate ? AppColors.success : accent)),
+            ),
+            if (_githubLatest != null) ...[
+              const SizedBox(height: 6),
+              Text('${context.l.appInfoLatest}: $_githubLatest',
+                  style: TextStyle(fontSize: 11, color: isDark ? Colors.white38 : Colors.black38)),
+            ],
+            if (_isUpdate) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.success.withValues(alpha: 0.15),
+                ),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  const Icon(CupertinoIcons.arrow_down_circle_fill, size: 13, color: AppColors.success),
+                  const SizedBox(width: 4),
+                  Text(context.l.appInfoUpdateAvailable,
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.success)),
+                ]),
+              ),
+            ],
+          ],
           const SizedBox(height: 18),
 
           // Action rows

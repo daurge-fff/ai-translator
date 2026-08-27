@@ -27,6 +27,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     super.initState();
     final user = ref.read(authProvider);
     _service.setToken(user.idToken.isNotEmpty ? user.idToken : null);
+    ref.read(adminProvider.notifier).fetchIncidents();
+    ref.read(adminProvider.notifier).fetchBans();
     _loadNotifications();
   }
 
