@@ -52,6 +52,9 @@ export async function authMiddleware(req, res, next) {
     const email = (payload.email || '').toLowerCase();
     const isAdmin = adminEmails.includes(email);
 
+    // Diagnostic log for admin access
+    console.log(`[AUTH] email=${email} isAdmin=${isAdmin} adminList=${JSON.stringify(adminEmails)}`);
+
     // Check if user is banned (with expiration check)
     const userBan = bannedUsers.get(email);
     if (userBan && (!userBan.expiresAt || new Date(userBan.expiresAt) > new Date())) {

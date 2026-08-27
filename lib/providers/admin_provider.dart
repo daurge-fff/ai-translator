@@ -136,12 +136,16 @@ class AdminNotifier extends StateNotifier<AdminState> {
     state = state.copyWith(incidents: updatedList);
   }
 
-  Future<void> addBan(String value, String type, String reason, {String warningMessage = '', String? expiresAt}) async {
+  Future<bool> addBan(String value, String type, String reason, {String warningMessage = '', String? expiresAt}) async {
     try {
       await _apiClient.addBan(value, type, reason, warningMessage: warningMessage, expiresAt: expiresAt);
-      final newBan = BannedEntity(value: value, type: type, reason: reason, warningMessage: warningMessage, expiresAt: expiresAt);
-      state = state.copyWith(bans: [...state.bans, newBan]);
-    } catch (_) {}
+      await fetchBans();
+      return true;
+    } catch (e) {
+      final msg = _errMsg(e);
+      state = state.copyWith(error: msg);
+      return false;
+    }
   }
 
   Future<bool> removeBan(String value, String type) async {
@@ -149,9 +153,18 @@ class AdminNotifier extends StateNotifier<AdminState> {
       await _apiClient.removeBan(value, type);
       await fetchBans();
       return true;
-    } catch (_) {
+    } catch (e) {
+      state = state.copyWith(error: _errMsg(e));
       return false;
     }
+  }
+
+  String _errMsg(Object e) {
+    final s = e.toString();
+    if (s.contains('401')) return 'Не авторизован. Войдите заново.';
+    if (s.contains('403')) return 'Нет прав администратора. Проверьте ADMIN_EMAILS на сервере.';
+    if (s.contains('Connection refused') || s.contains('SocketException')) return 'Сервер недоступен.';
+    return s.replaceAll('Exception: ', '');
   }
 
   bool isBlocked(String userEmail, String deviceId, String ip) {

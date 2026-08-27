@@ -354,7 +354,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
           color: AppColors.danger,
           height: 44,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          onPressed: () {
+          onPressed: () async {
             if (banValue.isNotEmpty && reasonController.text.isNotEmpty) {
               // Calculate expiration
               String? expiration;
@@ -366,19 +366,21 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
               }
               // 0 = permanent (no expiration)
 
-              ref.read(adminProvider.notifier).addBan(
+              final l = context.l;
+              final messenger = ScaffoldMessenger.of(context);
+              final navigator = Navigator.of(context);
+              final ok = await ref.read(adminProvider.notifier).addBan(
                 banValue,
                 banType,
                 reasonController.text,
                 warningMessage: warningController.text,
                 expiresAt: expiration,
               );
-              if (!mounted) return;
-              Navigator.pop(context);
-              if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
+              final errorMsg = ok ? '${l.blocked}$banValue' : ref.read(adminProvider).error ?? l.serverUnavailable;
+              navigator.pop();
+              messenger.showSnackBar(
                 SnackBar(
-                  content: Text('${context.l.blocked}$banValue'),
+                  content: Text(errorMsg),
                   backgroundColor: AppColors.danger,
                 ),
               );
@@ -796,9 +798,10 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
                       .removeBan(ban.value, ban.type);
                   if (!context.mounted) return;
                   final messenger = ScaffoldMessenger.of(context);
+                  final msg = ok ? 'Бан снят: ${ban.value}' : ref.read(adminProvider).error ?? 'Не удалось снять бан';
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text(ok ? 'Бан снят: ${ban.value}' : 'Не удалось снять бан'),
+                      content: Text(msg),
                       backgroundColor: ok ? AppColors.success : AppColors.danger,
                     ),
                   );

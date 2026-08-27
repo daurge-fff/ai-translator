@@ -8,7 +8,16 @@ import 'admin_provider.dart';
 import 'auth_provider.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) => AppDatabase());
-final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
+
+/// Global API client. The auth token is synced here so every consumer
+/// (translate, admin, notifications) always sends a valid token.
+final apiClientProvider = Provider<ApiClient>((ref) {
+  final client = ApiClient();
+  ref.listen(authProvider, (prev, next) {
+    client.setIdToken(next.idToken.isNotEmpty ? next.idToken : null);
+  }, fireImmediately: true);
+  return client;
+});
 
 class TranslationState {
   final String sourceText;
@@ -185,10 +194,6 @@ class TranslationNotifier extends StateNotifier<TranslationState> {
 final translationProvider = StateNotifierProvider<TranslationNotifier, TranslationState>((ref) {
   final apiClient = ref.watch(apiClientProvider);
   final db = ref.watch(databaseProvider);
-  // Sync auth token to API client
-  ref.listen(authProvider, (prev, next) {
-    apiClient.setIdToken(next.idToken.isNotEmpty ? next.idToken : null);
-  }, fireImmediately: true);
   final auth = ref.watch(authProvider.notifier);
   return TranslationNotifier(apiClient, db, (ban) => auth.setBan(ban));
 });

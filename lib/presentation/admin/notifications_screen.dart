@@ -211,11 +211,14 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           onPressed: () async {
             if (titleController.text.isNotEmpty && bodyController.text.isNotEmpty) {
-              final success = await _service.sendNotification(
+              final user = ref.read(authProvider);
+              _service.setToken(user.idToken.isNotEmpty ? user.idToken : null);
+              final error = await _service.sendNotification(
                 title: titleController.text,
                 body: bodyController.text,
                 targetEmail: sendToAll ? null : emailController.text,
               );
+              final success = error == null;
               if (!mounted) return;
               Navigator.pop(context);
               _loadNotifications();
@@ -224,7 +227,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                   SnackBar(
                     content: Text(success
                         ? (sendToAll ? context.l.notificationSentToAll : context.l.notificationSent)
-                        : context.l.serverUnavailable),
+                        : error),
                     backgroundColor: success ? AppColors.success : AppColors.danger,
                   ),
                 );

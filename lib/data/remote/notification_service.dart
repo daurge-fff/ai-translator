@@ -66,8 +66,8 @@ class NotificationService {
     } catch (_) {}
   }
 
-  // Admin: send notification
-  Future<bool> sendNotification({
+  // Admin: send notification. Returns null on success, error message on failure.
+  Future<String?> sendNotification({
     required String title,
     required String body,
     String? targetEmail,
@@ -80,9 +80,13 @@ class NotificationService {
         if (targetEmail != null) 'targetEmail': targetEmail,
         if (targetDeviceId != null) 'targetDeviceId': targetDeviceId,
       });
-      return true;
-    } catch (_) {
-      return false;
+      return null;
+    } catch (e) {
+      final s = e.toString();
+      if (s.contains('401')) return 'Не авторизован. Войдите заново.';
+      if (s.contains('403')) return 'Нет прав администратора. Проверьте ADMIN_EMAILS на сервере.';
+      if (s.contains('Connection refused') || s.contains('SocketException')) return 'Сервер недоступен.';
+      return s.replaceAll('Exception: ', '');
     }
   }
 
