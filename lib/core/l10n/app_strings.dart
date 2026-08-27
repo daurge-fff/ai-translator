@@ -115,6 +115,7 @@ class AppStrings {
   String get blocked => t('Blocked: ', 'Заблокировано: ');
   String get noIncidents => t('All clear', 'Чисто');
   String get empty => t('Empty', 'Пусто');
+  String get retry => t('Retry', 'Повторить');
   String get add => t('Add', 'Добавить');
   String get block => t('Block', 'Заблокировать');
   String get banPresetPrompt => t('Prompt bypass', 'Обход промпта');

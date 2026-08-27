@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 
 import { authMiddleware } from './middleware/auth.js';
 import { injectionFilterMiddleware } from './middleware/injectionFilter.js';
+import { initStore, storeStatus } from './services/store.js';
 
 import translateRouter from './routes/translate.js';
 import configRouter from './routes/config.js';
@@ -40,7 +41,8 @@ app.get('/health', (req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     service: 'Contextual Translator API',
-    bypassAuth: process.env.BYPASS_AUTH === 'true'
+    bypassAuth: process.env.BYPASS_AUTH === 'true',
+    store: storeStatus(),
   });
 });
 
@@ -62,19 +64,15 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Optional MongoDB Atlas connection
+// Optional MongoDB Atlas connection (durable store for bans/notifications/incidents)
 const mongoUri = process.env.MONGO_URI;
-if (mongoUri) {
-  import('mongoose').then(({ default: mongoose }) => {
-    mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 5000 })
-      .then(() => console.log('✅ Connected to MongoDB Atlas'))
-      .catch((err) => console.log('⚠️ MongoDB Atlas connection failed:', err.message));
-  });
-}
+initStore(mongoUri).then(() => {
+  console.log(`   Store: ${storeStatus().mongoEnabled ? 'MongoDB ✅' : 'In-memory ⚠️'}`);
+});
 
 app.listen(PORT, () => {
   console.log(`🚀 Contextual Translator API running on port ${PORT}`);
   console.log(`   DeepSeek Key: ${process.env.DEEPSEEK_API_KEY ? '✅' : '❌'}`);
   console.log(`   Auth Bypass: ${process.env.BYPASS_AUTH === 'true' ? '✅' : '❌'}`);
-  console.log(`   MongoDB: ${mongoUri ? 'Atlas ✅' : 'In-memory ⚠️'}`);
+  console.log(`   MongoDB: ${mongoUri ? 'configured' : 'not set'}`);
 });

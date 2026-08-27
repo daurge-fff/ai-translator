@@ -24,6 +24,8 @@ class UserProfile {
 
   bool get isBanned => ban != null;
 
+  static const Object _unset = Object();
+
   UserProfile copyWith({
     String? email,
     String? displayName,
@@ -31,7 +33,7 @@ class UserProfile {
     bool? isAdmin,
     bool? isAuthenticated,
     String? idToken,
-    BanInfo? ban,
+    Object? ban = _unset,
   }) {
     return UserProfile(
       email: email ?? this.email,
@@ -40,7 +42,7 @@ class UserProfile {
       isAdmin: isAdmin ?? this.isAdmin,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       idToken: idToken ?? this.idToken,
-      ban: ban ?? this.ban,
+      ban: identical(ban, _unset) ? this.ban : ban as BanInfo?,
     );
   }
 }

@@ -20,6 +20,7 @@ class NotificationsScreen extends ConsumerStatefulWidget {
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   final NotificationService _service = NotificationService();
   List<AppNotification> _notifications = [];
+  String? _loadError;
   bool _isLoading = true;
 
   @override
@@ -33,8 +34,14 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   Future<void> _loadNotifications() async {
     setState(() => _isLoading = true);
     _service.setDeviceId('admin-panel');
-    _notifications = await _service.getAllNotifications();
-    if (mounted) setState(() => _isLoading = false);
+    final result = await _service.getAllNotificationsWithError();
+    if (mounted) {
+      setState(() {
+        _notifications = result.items;
+        _loadError = result.error;
+        _isLoading = false;
+      });
+    }
   }
 
   void _showSendDialog() {
@@ -302,6 +309,30 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                             const SizedBox(height: 12),
                             Text(context.l.noNotifications,
                                 style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 16)),
+                            if (_loadError != null) ...[
+                              const SizedBox(height: 8),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 32),
+                                child: Text(
+                                  _loadError!,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(color: AppColors.danger, fontSize: 12),
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 8),
+                            GestureDetector(
+                              onTap: _loadNotifications,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: accent.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Text(context.l.retry,
+                                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: accent)),
+                              ),
+                            ),
                           ],
                         ),
                       )

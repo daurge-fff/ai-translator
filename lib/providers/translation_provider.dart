@@ -42,6 +42,8 @@ class TranslationState {
     this.ban,
   });
 
+  static const Object _unset = Object();
+
   TranslationState copyWith({
     String? sourceText,
     String? translatedText,
@@ -51,7 +53,7 @@ class TranslationState {
     String? regionalVariant,
     bool? isLoading,
     String? errorMessage,
-    BanInfo? ban,
+    Object? ban = _unset,
   }) {
     return TranslationState(
       sourceText: sourceText ?? this.sourceText,
@@ -62,7 +64,7 @@ class TranslationState {
       regionalVariant: regionalVariant ?? this.regionalVariant,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
-      ban: ban ?? this.ban,
+      ban: identical(ban, _unset) ? this.ban : ban as BanInfo?,
     );
   }
 }
@@ -159,7 +161,8 @@ class TranslationNotifier extends StateNotifier<TranslationState> {
         regionalVariant: state.regionalVariant,
       );
       final translated = result['translation'] ?? '';
-      state = state.copyWith(translatedText: translated, isLoading: false);
+      state = state.copyWith(translatedText: translated, isLoading: false, ban: null);
+      _onBan(null);
 
       // Save to SQLite Local Database
       if (translated.isNotEmpty) {

@@ -10,7 +10,7 @@ const INJECTION_PATTERNS = [
   /\[system\]/i
 ];
 
-export const securityIncidentsLog = [];
+import { addIncident } from '../services/store.js';
 
 export function injectionFilterMiddleware(req, res, next) {
   const { sourceText, source_text, userContext, user_context } = req.body || {};
@@ -38,8 +38,7 @@ export function injectionFilterMiddleware(req, res, next) {
       pattern: matchedPattern,
       severity: 'high'
     };
-    securityIncidentsLog.unshift(incident);
-    if (securityIncidentsLog.length > 100) securityIncidentsLog.pop();
+    addIncident(incident);
 
     console.warn(`[SECURITY BLOCKED] ${req.user?.email}: ${matchedPattern}`);
     return res.status(403).json({

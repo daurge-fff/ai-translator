@@ -1,10 +1,26 @@
 import express from 'express';
 import { translateText } from '../services/deepseekClient.js';
+import { bannedUsers, bannedDevices, isBanActive } from '../services/store.js';
 
 const router = express.Router();
 
 router.post('/', async (req, res) => {
   try {
+    // Bans only block the translator, never admin pages.
+    const email = (req.user?.email || '').toLowerCase();
+    const deviceId = req.user?.deviceId || req.headers['x-device-id'];
+    const userBan = bannedUsers.get(email);
+    const deviceBan = bannedDevices.get(deviceId);
+    const activeBan = isBanActive(userBan) ? userBan : isBanActive(deviceBan) ? deviceBan : null;
+    if (activeBan) {
+      return res.status(403).json({
+        error: 'Access denied: account is banned',
+        reason: activeBan.reason || '',
+        warningMessage: activeBan.warningMessage || '',
+        expiresAt: activeBan.expiresAt,
+      });
+    }
+
     const { sourceText, source_text, sourceLang, source_lang, targetLang, target_lang, userContext, user_context, regionalVariant, regional_variant } = req.body;
 
     const text = sourceText || source_text;

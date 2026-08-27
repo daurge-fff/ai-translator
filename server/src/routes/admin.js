@@ -1,42 +1,24 @@
 import express from 'express';
-import { securityIncidentsLog } from '../middleware/injectionFilter.js';
-import { currentRemoteConfig } from './config.js';
+import {
+  bannedUsers,
+  bannedDevices,
+  bannedIPs,
+  warnings,
+  securityIncidentsLog,
+  isBanActive,
+  getActiveBans,
+  addBan,
+  removeBan,
+  addWarning,
+  dismissWarning,
+} from '../services/store.js';
 
 const router = express.Router();
-
-// In-memory ban store (swap for DB in production)
-// Each entry: { value, type, reason, warningMessage, bannedAt, bannedBy, expiresAt }
-export const bannedUsers = new Map();
-export const bannedDevices = new Map();
-export const bannedIPs = new Map();
-
-// In-memory warnings store (non-blocking warnings shown to user)
-// Each entry: { value, type, message, createdAt, expiresAt, dismissed }
-export const warnings = new Map();
-
-// Check if a ban is currently active (not expired)
-function isBanActive(entry) {
-  if (!entry) return false;
-  if (!entry.expiresAt) return true; // permanent ban
-  return new Date(entry.expiresAt) > new Date();
-}
-
-// Get active bans from a store
-function getActiveBans(store) {
-  const active = [];
-  for (const [key, entry] of store) {
-    if (isBanActive(entry)) {
-      active.push(entry);
-    } else {
-      store.delete(key); // cleanup expired
-    }
-  }
-  return active;
-}
 
 // Middleware to enforce admin access
 function adminOnly(req, res, next) {
   if (!req.user || !req.user.isAdmin) {
+    console.warn(`[ADMIN] blocked non-admin: ${req.user?.email || 'anonymous'} → ${req.method} ${req.originalUrl}`);
     return res.status(403).json({ error: 'Access denied: Admin rights required' });
   }
   next();
@@ -59,7 +41,7 @@ router.get('/access-control', (req, res) => {
 });
 
 // Add a ban with optional expiration and warning
-router.post('/bans', (req, res) => {
+router.post('/bans', async (req, res) => {
   const { value, type, reason, warningMessage, expiresAt } = req.body;
   if (!value || !type) {
     return res.status(400).json({ error: 'value and type are required' });
@@ -75,18 +57,16 @@ router.post('/bans', (req, res) => {
     expiresAt: expiresAt || null, // null = permanent
   };
 
-  const store = type === 'user' ? bannedUsers : type === 'device' ? bannedDevices : bannedIPs;
-  store.set(value.toLowerCase(), ban);
+  await addBan(ban);
 
   // If there's a warning message, also create a warning entry
   if (warningMessage) {
-    warnings.set(`${type}:${value}`, {
+    await addWarning({
       value,
       type,
       message: warningMessage,
       createdAt: new Date().toISOString(),
       expiresAt: expiresAt || null,
-      dismissed: false,
     });
   }
 
@@ -94,12 +74,9 @@ router.post('/bans', (req, res) => {
 });
 
 // Remove a ban
-router.delete('/bans/:type/:value', (req, res) => {
+router.delete('/bans/:type/:value', async (req, res) => {
   const { type, value } = req.params;
-  const store = type === 'user' ? bannedUsers : type === 'device' ? bannedDevices : bannedIPs;
-  const decoded = value;
-  store.delete(decoded.toLowerCase());
-  warnings.delete(`${type}:${decoded}`);
+  await removeBan(type, value);
   res.json({ success: true });
 });
 
@@ -131,13 +108,9 @@ router.get('/warnings', (req, res) => {
 });
 
 // Dismiss a warning
-router.post('/warnings/dismiss', (req, res) => {
+router.post('/warnings/dismiss', async (req, res) => {
   const { value, type } = req.body;
-  const key = `${type}:${value}`;
-  const entry = warnings.get(key);
-  if (entry) {
-    entry.dismissed = true;
-  }
+  await dismissWarning(type, value);
   res.json({ success: true });
 });
 

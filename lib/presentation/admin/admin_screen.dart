@@ -332,7 +332,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
                   spacing: 8,
                   runSpacing: 6,
                   children: [
-                    _durationChip(context.l.banDuration1Hour, 0.042, banDurationDays, setInner, (v) => banDurationDays = v),
+                    _durationChip(context.l.banDuration1Hour, 0.04, banDurationDays, setInner, (v) => banDurationDays = v),
                     _durationChip(context.l.banDuration24Hours, 1, banDurationDays, setInner, (v) => banDurationDays = v),
                     _durationChip(context.l.banDuration7Days, 7, banDurationDays, setInner, (v) => banDurationDays = v),
                     _durationChip(context.l.banDuration30Days, 30, banDurationDays, setInner, (v) => banDurationDays = v),
@@ -591,7 +591,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
               icon: CupertinoIcons.refresh,
               buttonSize: 40,
               color: accent,
-              onPressed: () => ref.read(adminProvider.notifier).fetchIncidents(),
+              onPressed: () => ref.read(adminProvider.notifier).refreshAll(),
             ),
           ],
         ),
@@ -731,6 +731,18 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
                 style: TextStyle(
                     color: isDark ? Colors.white54 : Colors.black54,
                     fontSize: 16)),
+            if (s.error != null) ...[
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  s.error!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      color: AppColors.danger, fontSize: 12),
+                ),
+              ),
+            ],
             const SizedBox(height: 8),
             TextButton.icon(
               icon: const Icon(CupertinoIcons.hand_raised_fill, size: 16),

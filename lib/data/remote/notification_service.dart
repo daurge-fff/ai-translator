@@ -82,15 +82,29 @@ class NotificationService {
       });
       return null;
     } catch (e) {
+      if (e is DioException) {
+        final code = e.response?.statusCode;
+        final body = e.response?.data;
+        final serverMsg = body is Map && body['error'] is String && (body['error'] as String).isNotEmpty
+            ? body['error'] as String
+            : null;
+        if (code == 401) return 'Не авторизован. Войдите заново.';
+        if (code == 403) {
+          if (serverMsg != null) {
+            return 'Отказ сервера (403): $serverMsg';
+          }
+          return 'Нет прав администратора. Проверьте ADMIN_EMAILS на сервере.';
+        }
+        if (serverMsg != null) return 'Ошибка сервера: $serverMsg';
+      }
       final s = e.toString();
-      if (s.contains('401')) return 'Не авторизован. Войдите заново.';
-      if (s.contains('403')) return 'Нет прав администратора. Проверьте ADMIN_EMAILS на сервере.';
       if (s.contains('Connection refused') || s.contains('SocketException')) return 'Сервер недоступен.';
+      if (s.contains('TimeoutException') || s.contains('timeout')) return 'Сервер не отвечает. Попробуйте позже.';
       return s.replaceAll('Exception: ', '');
     }
   }
 
-  // Admin: get all notifications
+  // Admin: get all notifications. Returns list; empty on error.
   Future<List<AppNotification>> getAllNotifications() async {
     try {
       final response = await _dio.get(ApiConstants.notificationsAllEndpoint);
@@ -101,10 +115,45 @@ class NotificationService {
     }
   }
 
+  // Admin: get all notifications, surfacing the error so the UI can show it.
+  Future<({List<AppNotification> items, String? error})> getAllNotificationsWithError() async {
+    try {
+      final response = await _dio.get(ApiConstants.notificationsAllEndpoint);
+      final raw = response.data['notifications'];
+      final List<AppNotification> items = (raw is List ? raw : const <dynamic>[])
+          .map((e) => AppNotification.fromJson(e as Map<String, dynamic>))
+          .toList();
+      return (items: items, error: null);
+    } catch (e) {
+      return (items: const <AppNotification>[], error: _describeError(e));
+    }
+  }
+
   // Admin: delete notification
   Future<void> deleteNotification(String id) async {
     try {
       await _dio.delete('${ApiConstants.notificationsEndpoint}/$id');
     } catch (_) {}
+  }
+
+  String _describeError(Object e) {
+    if (e is DioException) {
+      final code = e.response?.statusCode;
+      final body = e.response?.data;
+      final serverMsg = body is Map && body['error'] is String && (body['error'] as String).isNotEmpty
+          ? body['error'] as String
+          : null;
+      if (code == 401) return 'Не авторизован. Войдите заново.';
+      if (code == 403) {
+        return serverMsg != null
+            ? 'Отказ сервера (403): $serverMsg'
+            : 'Нет прав администратора. Проверьте ADMIN_EMAILS на сервере.';
+      }
+      if (serverMsg != null) return 'Ошибка сервера: $serverMsg';
+    }
+    final s = e.toString();
+    if (s.contains('Connection refused') || s.contains('SocketException')) return 'Сервер недоступен.';
+    if (s.contains('TimeoutException') || s.contains('timeout')) return 'Сервер не отвечает. Попробуйте позже.';
+    return s.replaceAll('Exception: ', '');
   }
 }
