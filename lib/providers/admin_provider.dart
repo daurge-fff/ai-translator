@@ -144,11 +144,14 @@ class AdminNotifier extends StateNotifier<AdminState> {
     } catch (_) {}
   }
 
-  Future<void> removeBan(String value, String type) async {
+  Future<bool> removeBan(String value, String type) async {
     try {
       await _apiClient.removeBan(value, type);
       await fetchBans();
-    } catch (_) {}
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   bool isBlocked(String userEmail, String deviceId, String ip) {

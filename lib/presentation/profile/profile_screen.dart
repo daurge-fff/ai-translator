@@ -447,22 +447,23 @@ class _AppInfoCardState extends State<_AppInfoCard> {
   Future<void> _loadVersion() async {
     final prefs = await SharedPreferences.getInstance();
     final info = await PackageInfo.fromPlatform();
-    final local = info.version;
     final latest = await GitHubService().getLatestVersion();
 
     // The installed version is remembered on first run. If GitHub has
     // more commits than at install time → an update is available.
-    final installed = prefs.getString('installed_version');
+    var installed = prefs.getString('installed_version');
     if (installed == null && latest != null) {
+      installed = latest;
       await prefs.setString('installed_version', latest);
     }
 
     if (!mounted) return;
     setState(() {
-      _localVersion = local;
+      // Show the commit-derived version (latest at install time) as the
+      // current app version, matching what the developer actually runs.
+      _localVersion = installed ?? latest ?? info.version;
       _githubLatest = latest;
-      final reference = installed ?? latest ?? local;
-      _isUpdate = latest != null && _isNewer(latest, reference);
+      _isUpdate = latest != null && installed != null && _isNewer(latest, installed);
       _loaded = true;
     });
   }

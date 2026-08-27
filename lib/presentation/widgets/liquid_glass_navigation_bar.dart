@@ -221,32 +221,32 @@ class _LiquidGlassNavigationBarState
         return Stack(
           clipBehavior: Clip.none,
           children: [
-            ExcludeSemantics(
-              child: AnimatedBuilder(
-                animation: _slideController,
-                builder: (context, _) {
-                  final index = _currentIndexValue
-                      .clamp(0.0, (count - 1).toDouble());
-                  final maxLeft = constraints.maxWidth -
-                      indicatorWidth -
-                      metrics.indicatorHorizontalInset;
-                  final rawLeft =
-                      index * itemWidth + metrics.indicatorHorizontalInset;
-                  final left = rawLeft
-                      .clamp(metrics.indicatorHorizontalInset, maxLeft)
-                      .toDouble();
-                  return Positioned(
-                    left: left,
-                    top: metrics.indicatorVerticalInset,
-                    width: indicatorWidth,
-                    height: indicatorHeight,
+            AnimatedBuilder(
+              animation: _slideController,
+              builder: (context, _) {
+                final index = _currentIndexValue
+                    .clamp(0.0, (count - 1).toDouble());
+                final maxLeft = constraints.maxWidth -
+                    indicatorWidth -
+                    metrics.indicatorHorizontalInset;
+                final rawLeft =
+                    index * itemWidth + metrics.indicatorHorizontalInset;
+                final left = rawLeft
+                    .clamp(metrics.indicatorHorizontalInset, maxLeft)
+                    .toDouble();
+                return Positioned(
+                  left: left,
+                  top: metrics.indicatorVerticalInset,
+                  width: indicatorWidth,
+                  height: indicatorHeight,
+                  child: ExcludeSemantics(
                     child: _SelectedIndicator(
                       radius: indicatorHeight / 2,
                       isDark: isDark,
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
             ),
             Row(
               children: List.generate(count, (index) {

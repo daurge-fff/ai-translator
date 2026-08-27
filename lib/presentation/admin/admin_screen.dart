@@ -788,11 +788,26 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
                   ],
                 ),
               ),
-              IconButton(
-                icon: const Icon(CupertinoIcons.xmark_circle_fill,
-                    color: Colors.grey, size: 20),
-                onPressed: () =>
-                    ref.read(adminProvider.notifier).removeBan(ban.value, ban.type),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () async {
+                  final ok = await ref
+                      .read(adminProvider.notifier)
+                      .removeBan(ban.value, ban.type);
+                  if (!context.mounted) return;
+                  final messenger = ScaffoldMessenger.of(context);
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text(ok ? 'Бан снят: ${ban.value}' : 'Не удалось снять бан'),
+                      backgroundColor: ok ? AppColors.success : AppColors.danger,
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Icon(CupertinoIcons.xmark_circle_fill,
+                      color: Colors.grey, size: 22),
+                ),
               ),
             ],
           ),
