@@ -70,8 +70,14 @@ class ApiClient {
     return all;
   }
 
-  Future<void> addBan(String value, String type, String reason) async {
-    await _dio.post(ApiConstants.adminBansEndpoint, data: {'value': value, 'type': type, 'reason': reason});
+  Future<void> addBan(String value, String type, String reason, {String warningMessage = '', String? expiresAt}) async {
+    await _dio.post(ApiConstants.adminBansEndpoint, data: {
+      'value': value,
+      'type': type,
+      'reason': reason,
+      'warningMessage': warningMessage,
+      'expiresAt': expiresAt,
+    });
   }
 
   Future<void> removeBan(String value, String type) async {

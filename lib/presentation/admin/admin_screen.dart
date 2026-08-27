@@ -8,6 +8,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/liquid_glass.dart';
 import '../../providers/admin_provider.dart';
 import '../../providers/theme_provider.dart';
+import 'notifications_screen.dart';
 
 class AdminScreen extends ConsumerStatefulWidget {
   const AdminScreen({super.key});
@@ -151,8 +152,10 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
   void _showBanDialog(BuildContext context, {SecurityIncident? fromIncident}) {
     String banType = 'user';
     final reasonController = TextEditingController();
+    final warningController = TextEditingController();
     final banValueController = TextEditingController(text: fromIncident?.user ?? '');
     String banValue = fromIncident?.user ?? '';
+    double banDurationDays = 0; // 0 = permanent
     final suggestions = {
       ...ref.read(adminProvider).incidents.map((i) => i.user),
       ...ref.read(adminProvider).bans.map((b) => b.value),
@@ -304,6 +307,38 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
                   maxLines: 2,
                   decoration: InputDecoration(hintText: context.l.customReasonHint),
                 ),
+                const SizedBox(height: 16),
+
+                // Warning message (optional)
+                Text(context.l.banWarningLabel,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: warningController,
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    hintText: context.l.banWarningHint,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    contentPadding: const EdgeInsets.all(12),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Ban duration
+                Text(context.l.banDuration,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
+                    _durationChip(context.l.banDuration1Hour, 0.042, banDurationDays, setInner, (v) => banDurationDays = v),
+                    _durationChip(context.l.banDuration24Hours, 1, banDurationDays, setInner, (v) => banDurationDays = v),
+                    _durationChip(context.l.banDuration7Days, 7, banDurationDays, setInner, (v) => banDurationDays = v),
+                    _durationChip(context.l.banDuration30Days, 30, banDurationDays, setInner, (v) => banDurationDays = v),
+                    _durationChip(context.l.banPermanent, 0, banDurationDays, setInner, (v) => banDurationDays = v),
+                  ],
+                ),
               ],
             ),
           );
@@ -321,9 +356,23 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           onPressed: () {
             if (banValue.isNotEmpty && reasonController.text.isNotEmpty) {
-              ref
-                  .read(adminProvider.notifier)
-                  .addBan(banValue, banType, reasonController.text);
+              // Calculate expiration
+              String? expiration;
+              if (banDurationDays > 0) {
+                expiration = DateTime.now().add(Duration(days: banDurationDays.toInt())).toIso8601String();
+              } else if (banDurationDays == 0.04) {
+                // 1 hour
+                expiration = DateTime.now().add(const Duration(hours: 1)).toIso8601String();
+              }
+              // 0 = permanent (no expiration)
+
+              ref.read(adminProvider.notifier).addBan(
+                banValue,
+                banType,
+                reasonController.text,
+                warningMessage: warningController.text,
+                expiresAt: expiration,
+              );
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -374,6 +423,30 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
                     color: sel ? AppColors.primaryBlue : Colors.grey)),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _durationChip(String label, double value, double current,
+      StateSetter setInner, ValueChanged<double> onSelected) {
+    final sel = current == value;
+    return GestureDetector(
+      onTap: () => setInner(() => onSelected(value)),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: sel
+              ? AppColors.warning.withValues(alpha: 0.15)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+              color: sel ? AppColors.warning : AppColors.lightSystemGray4),
+        ),
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 11,
+                fontWeight: sel ? FontWeight.w600 : FontWeight.w400,
+                color: sel ? AppColors.warning : Colors.grey)),
       ),
     );
   }
@@ -497,6 +570,13 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
               buttonSize: 40,
               color: AppColors.danger,
               onPressed: () => _showBanDialog(context),
+            ),
+            const SizedBox(width: 6),
+            GlassIconButton(
+              icon: CupertinoIcons.bell,
+              buttonSize: 40,
+              color: AppColors.primaryBlue,
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())),
             ),
             const SizedBox(width: 6),
             GlassIconButton(

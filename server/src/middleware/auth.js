@@ -52,12 +52,24 @@ export async function authMiddleware(req, res, next) {
     const email = (payload.email || '').toLowerCase();
     const isAdmin = adminEmails.includes(email);
 
-    // Check if user is banned
-    if (bannedUsers.has(email)) {
-      return res.status(403).json({ error: 'Access denied: account is banned' });
+    // Check if user is banned (with expiration check)
+    const userBan = bannedUsers.get(email);
+    if (userBan && (!userBan.expiresAt || new Date(userBan.expiresAt) > new Date())) {
+      return res.status(403).json({
+        error: 'Access denied: account is banned',
+        reason: userBan.reason || '',
+        warningMessage: userBan.warningMessage || '',
+        expiresAt: userBan.expiresAt,
+      });
     }
-    if (bannedDevices.has(deviceId)) {
-      return res.status(403).json({ error: 'Access denied: device is banned' });
+    const deviceBan = bannedDevices.get(deviceId);
+    if (deviceBan && (!deviceBan.expiresAt || new Date(deviceBan.expiresAt) > new Date())) {
+      return res.status(403).json({
+        error: 'Access denied: device is banned',
+        reason: deviceBan.reason || '',
+        warningMessage: deviceBan.warningMessage || '',
+        expiresAt: deviceBan.expiresAt,
+      });
     }
 
     req.user = {

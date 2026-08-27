@@ -14,6 +14,7 @@ import '../../providers/theme_provider.dart';
 import '../../providers/translation_provider.dart';
 import '../../providers/contexts_provider.dart';
 import '../admin/admin_screen.dart';
+import 'changelog_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -261,36 +262,10 @@ class ProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 20),
 
-            // About
+            // About — App Info Card
             Text(context.l.aboutSection.toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary, letterSpacing: 1.0)),
             const SizedBox(height: 10),
-            panel(
-              child: FutureBuilder<PackageInfo>(
-                future: PackageInfo.fromPlatform(),
-                builder: (context, snapshot) {
-                  final info = snapshot.data;
-                  final version = info != null ? '${info.version} (${info.buildNumber})' : '...';
-                  return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    _AboutRow(label: context.l.version, value: version, isDark: isDark),
-                    const SizedBox(height: 12),
-                    _AboutRow(label: context.l.license, value: 'MIT', isDark: isDark),
-                    const SizedBox(height: 12),
-                    GestureDetector(
-                      onTap: () async {
-                        final uri = Uri.parse('https://github.com/daurge-fff/ai-translator');
-                        if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
-                      },
-                      child: Row(children: [
-                        Icon(CupertinoIcons.link, size: 14, color: accent),
-                        const SizedBox(width: 6),
-                        Expanded(child: Text('github.com/daurge-fff/ai-translator', style: TextStyle(fontSize: 13, color: accent, decoration: TextDecoration.underline))),
-                        Icon(CupertinoIcons.arrow_up_right, size: 12, color: accent),
-                      ]),
-                    ),
-                  ]);
-                },
-              ),
-            ),
+            _AppInfoCard(accent: accent, isDark: isDark),
             const SizedBox(height: 120),
           ],
         ),
@@ -385,21 +360,123 @@ class _LangFlagButton extends StatelessWidget {
   }
 }
 
-class _AboutRow extends StatelessWidget {
-  final String label;
-  final String value;
+class _AppInfoCard extends StatelessWidget {
+  final Color accent;
   final bool isDark;
 
-  const _AboutRow({required this.label, required this.value, required this.isDark});
+  const _AppInfoCard({required this.accent, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: TextStyle(fontSize: 13, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary)),
-        Text(value, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary)),
-      ],
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        color: isDark ? const Color(0xFF1E1E2C).withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.8),
+        border: Border.all(
+          color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.06),
+        ),
+      ),
+      child: Column(
+        children: [
+          // App icon
+          Container(
+            width: 64, height: 64,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [accent, accent.withValues(alpha: 0.7)],
+              ),
+              boxShadow: [
+                BoxShadow(color: accent.withValues(alpha: 0.3), blurRadius: 16, offset: const Offset(0, 6)),
+              ],
+            ),
+            child: const Icon(CupertinoIcons.globe, size: 32, color: Colors.white),
+          ),
+          const SizedBox(height: 14),
+          Text(context.l.appInfoTitle,
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+          const SizedBox(height: 4),
+          Text(context.l.appInfoSubtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : Colors.black45)),
+          const SizedBox(height: 16),
+
+          // Version badge
+          FutureBuilder<PackageInfo>(
+            future: PackageInfo.fromPlatform(),
+            builder: (context, snapshot) {
+              final info = snapshot.data;
+              final v = info?.version ?? '...';
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: accent.withValues(alpha: 0.12),
+                ),
+                child: Text('${context.l.appInfoVersion} $v',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: accent)),
+              );
+            },
+          ),
+          const SizedBox(height: 18),
+
+          // Action rows
+          _infoAction(
+            context,
+            icon: CupertinoIcons.doc_text,
+            label: context.l.appInfoChangelog,
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangelogScreen())),
+            isDark: isDark,
+          ),
+          const SizedBox(height: 2),
+          _infoAction(
+            context,
+            icon: CupertinoIcons.link,
+            label: context.l.appInfoGitHub,
+            onTap: () async {
+              final uri = Uri.parse('https://github.com/daurge-fff/ai-translator');
+              if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+            },
+            isDark: isDark,
+          ),
+          const SizedBox(height: 2),
+          _infoAction(
+            context,
+            icon: CupertinoIcons.doc_checkmark,
+            label: context.l.appInfoLicense,
+            onTap: () async {
+              final uri = Uri.parse('https://opensource.org/licenses/MIT');
+              if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+            },
+            isDark: isDark,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoAction(BuildContext context, {required IconData icon, required String label, required VoidCallback onTap, required bool isDark}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.03),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 16, color: isDark ? Colors.white54 : Colors.black45),
+            const SizedBox(width: 10),
+            Expanded(child: Text(label, style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black87))),
+            Icon(CupertinoIcons.chevron_right, size: 14, color: isDark ? Colors.white24 : Colors.black26),
+          ],
+        ),
+      ),
     );
   }
 }

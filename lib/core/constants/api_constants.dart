@@ -1,12 +1,15 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 class ApiConstants {
-  // Determine base URL dynamically based on platform
+  static const String _prodBaseUrl = 'https://translator.clearn.top';
+
+  /// In release mode, use production server.
+  /// In debug mode, use localhost (platform-specific).
   static String get baseUrl {
-    if (Platform.isAndroid) {
-      return 'http://10.0.2.2:3000'; // Android emulator localhost alias
-    }
-    return 'http://127.0.0.1:3000'; // iOS Simulator & Desktop localhost
+    if (kReleaseMode) return _prodBaseUrl;
+    if (Platform.isAndroid) return 'http://10.0.2.2:3214';
+    return 'http://127.0.0.1:3214';
   }
 
   static const String translateEndpoint = '/api/translate';
@@ -14,4 +17,5 @@ class ApiConstants {
   static const String adminConfigEndpoint = '/api/admin/config';
   static const String adminAccessControlEndpoint = '/api/admin/access-control';
   static const String adminBansEndpoint = '/api/admin/bans';
+  static const String notificationsEndpoint = '/api/notifications';
 }

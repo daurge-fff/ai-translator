@@ -121,6 +121,50 @@ class AppStrings {
   String get banPresetInjections => t('Command injections', 'Инъекции команд');
   String get banPresetAbuse => t('API abuse', 'Злоупотребление API');
   String get banPresetScraping => t('Data collection', 'Сбор данных');
+
+  // Ban duration
+  String get banDuration => t('Ban duration', 'Срок блокировки');
+  String get banDuration1Hour => t('1 hour', '1 час');
+  String get banDuration24Hours => t('24 hours', '24 часа');
+  String get banDuration7Days => t('7 days', '7 дней');
+  String get banDuration30Days => t('30 days', '30 дней');
+  String get banPermanent => t('Permanent', 'Навсегда');
+
+  // Ban warning
+  String get banWarningLabel => t('Warning (optional)', 'Предупреждение (опционально)');
+  String get banWarningHint => t('Warning text the user will see', 'Текст предупреждения, который увидит пользователь');
+
+  // Notifications
+  String get notificationsTitle => t('Notifications', 'Уведомления');
+  String get sendNotification => t('Send notification', 'Отправить уведомление');
+  String get notificationTitle => t('Title', 'Заголовок');
+  String get notificationBody => t('Message text', 'Текст уведомления');
+  String get notificationToAll => t('To all users', 'Всем пользователям');
+  String get notificationToUser => t('To specific user', 'Конкретному пользователю');
+  String get notificationEmailHint => t('User email', 'Email пользователя');
+  String get notificationSent => t('Notification sent', 'Уведомление отправлено');
+  String get notificationSentToAll => t('Sent to all users', 'Отправлено всем пользователям');
+  String get noNotifications => t('No notifications', 'Нет уведомлений');
+  String get notificationSend => t('Send', 'Отправить');
+  String get notificationCancel => t('Cancel', 'Отмена');
+
+  // Changelog
+  String get changelogTitle => t('Changelog', 'История изменений');
+  String get changelogLoadError => t('Failed to load history', 'Не удалось загрузить историю');
+  String get changelogAuthor => t('Author', 'Автор');
+  String get changelogTime => t('Time', 'Время');
+  String get changelogCommit => t('Commit', 'Коммит');
+
+  // App info card
+  String get appInfoTitle => t('AI Translator', 'AI Переводчик');
+  String get appInfoSubtitle => t('Context-aware translation powered by AI', 'Контекстный перевод с помощью ИИ');
+  String get appInfoGitHub => t('GitHub', 'GitHub');
+  String get appInfoChangelog => t('Changelog', 'История изменений');
+  String get appInfoLicense => t('MIT License', 'Лицензия MIT');
+  String get appInfoVersion => t('Version', 'Версия');
+  String get appInfoUpToDate => t('Up to date', 'Последняя версия');
+  String get appInfoUpdateAvailable => t('Update available', 'Доступно обновление');
+  String get serverUnavailable => t('Server unavailable', 'Сервер недоступен');
 }
 
 extension AppStringsContext on BuildContext {

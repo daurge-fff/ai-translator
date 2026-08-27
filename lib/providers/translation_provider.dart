@@ -21,7 +21,7 @@ class TranslationState {
     this.sourceText = '',
     this.translatedText = '',
     this.sourceLang = 'Русский',
-    this.targetLang = 'English',
+    this.targetLang = 'English (US)',
     this.userContext = '',
     this.regionalVariant = '',
     this.isLoading = false,
@@ -58,32 +58,35 @@ class TranslationNotifier extends StateNotifier<TranslationState> {
 
   TranslationNotifier(this._apiClient, this._db) : super(TranslationState());
 
+  void _debouncedTranslate() {
+    if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 800), () {
+      performTranslation();
+    });
+  }
+
   void setSourceText(String text) {
     state = state.copyWith(sourceText: text, errorMessage: null);
-
-    if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
 
     if (text.trim().isEmpty) {
       state = state.copyWith(translatedText: '', isLoading: false);
       return;
     }
 
-    _debounceTimer = Timer(const Duration(milliseconds: 700), () {
-      performTranslation();
-    });
+    _debouncedTranslate();
   }
 
   void setUserContext(String contextText) {
     state = state.copyWith(userContext: contextText);
     if (state.sourceText.trim().isNotEmpty) {
-      performTranslation();
+      _debouncedTranslate();
     }
   }
 
   void setLanguages(String source, String target) {
     state = state.copyWith(sourceLang: source, targetLang: target);
     if (state.sourceText.trim().isNotEmpty) {
-      performTranslation();
+      _debouncedTranslate();
     }
   }
 
@@ -120,7 +123,7 @@ class TranslationNotifier extends StateNotifier<TranslationState> {
     );
 
     if (state.sourceText.trim().isNotEmpty) {
-      performTranslation();
+      _debouncedTranslate();
     }
   }
 

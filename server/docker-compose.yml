@@ -1,24 +1,7 @@
 services:
-  proxy:
+  api:
     build: .
     env_file: .env
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8080:8080"
-    depends_on:
-      mongo:
-        condition: service_healthy
-
-  mongo:
-    image: mongo:8
-    restart: unless-stopped
-    volumes:
-      - mongo_data:/data/db
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.runCommand({ ping: 1 })", "--quiet"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  mongo_data:
+      - "127.0.0.1:3214:3214"

@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
-import mongoose from 'mongoose';
 
 import { authMiddleware } from './middleware/auth.js';
 import { injectionFilterMiddleware } from './middleware/injectionFilter.js';
@@ -10,17 +9,21 @@ import { injectionFilterMiddleware } from './middleware/injectionFilter.js';
 import translateRouter from './routes/translate.js';
 import configRouter from './routes/config.js';
 import adminRouter from './routes/admin.js';
+import notificationsRouter from './routes/notifications.js';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3214;
 
 // Enable CORS & JSON parsing
-app.use(cors());
+app.use(cors({
+  origin: (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean),
+  credentials: true,
+}));
 app.use(express.json());
 
-// Global Rate Limiting (Section 5.7)
+// Global Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 200,
@@ -41,25 +44,28 @@ app.get('/health', (req, res) => {
 // Authentication middleware for all /api endpoints
 app.use('/api', authMiddleware);
 
-// Security prompt injection filter middleware (Section 5.2)
+// Security prompt injection filter middleware
 app.use('/api', injectionFilterMiddleware);
 
 // Routes
 app.use('/api/translate', translateRouter);
 app.use('/api/config', configRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/notifications', notificationsRouter);
 
-// Attempt optional MongoDB connection (graceful fallback if MongoDB is offline)
-const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/translator';
-mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 2000 })
-  .then(() => console.log('✅ Connected to MongoDB server'))
-  .catch((err) => console.log('⚠️ MongoDB offline/skipped (operating in in-memory mode):', err.message));
+// Optional MongoDB Atlas connection
+const mongoUri = process.env.MONGO_URI;
+if (mongoUri) {
+  import('mongoose').then(({ default: mongoose }) => {
+    mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 5000 })
+      .then(() => console.log('✅ Connected to MongoDB Atlas'))
+      .catch((err) => console.log('⚠️ MongoDB Atlas connection failed:', err.message));
+  });
+}
 
 app.listen(PORT, () => {
-  console.log(`====================================================`);
-  console.log(`🚀 Contextual Translator Proxy Backend Running`);
-  console.log(`URL: http://localhost:${PORT}`);
-  console.log(`DeepSeek Key Status: ${process.env.DEEPSEEK_API_KEY ? 'Present ✅' : 'Missing ❌'}`);
-  console.log(`Bypass Auth Mode: ${process.env.BYPASS_AUTH === 'true' ? 'Active (Testing Mode)' : 'Disabled'}`);
-  console.log(`====================================================`);
+  console.log(`🚀 Contextual Translator API running on port ${PORT}`);
+  console.log(`   DeepSeek Key: ${process.env.DEEPSEEK_API_KEY ? '✅' : '❌'}`);
+  console.log(`   Auth Bypass: ${process.env.BYPASS_AUTH === 'true' ? '✅' : '❌'}`);
+  console.log(`   MongoDB: ${mongoUri ? 'Atlas ✅' : 'In-memory ⚠️'}`);
 });

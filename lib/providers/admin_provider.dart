@@ -41,8 +41,10 @@ class BannedEntity {
   final String value;
   final String type; // 'user', 'device', 'ip'
   final String reason;
+  final String warningMessage;
+  final String? expiresAt;
 
-  BannedEntity({required this.value, required this.type, required this.reason});
+  BannedEntity({required this.value, required this.type, required this.reason, this.warningMessage = '', this.expiresAt});
 }
 
 class AdminState {
@@ -96,6 +98,8 @@ class AdminNotifier extends StateNotifier<AdminState> {
         value: e['value'] ?? '',
         type: e['type'] ?? 'user',
         reason: e['reason'] ?? '',
+        warningMessage: e['warningMessage'] ?? '',
+        expiresAt: e['expiresAt'],
       )).toList();
       state = state.copyWith(bans: bans);
     } catch (_) {}
@@ -106,10 +110,10 @@ class AdminNotifier extends StateNotifier<AdminState> {
     state = state.copyWith(incidents: updatedList);
   }
 
-  Future<void> addBan(String value, String type, String reason) async {
+  Future<void> addBan(String value, String type, String reason, {String warningMessage = '', String? expiresAt}) async {
     try {
-      await _apiClient.addBan(value, type, reason);
-      final newBan = BannedEntity(value: value, type: type, reason: reason);
+      await _apiClient.addBan(value, type, reason, warningMessage: warningMessage, expiresAt: expiresAt);
+      final newBan = BannedEntity(value: value, type: type, reason: reason, warningMessage: warningMessage, expiresAt: expiresAt);
       state = state.copyWith(bans: [...state.bans, newBan]);
     } catch (_) {}
   }
