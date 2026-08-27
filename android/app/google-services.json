@@ -12,7 +12,16 @@
           "package_name": "com.example.ai_translator"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "841057078666-2k63auc8v4aikp7bct9uuuc4urr8gb4g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ai_translator",
+            "certificate_hash": "551B77A18A6DC52887C322DED2C37469024024BA"
+          }
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBfumcA4QrhraIR5WLAyibILOYu7Nsmt6c"

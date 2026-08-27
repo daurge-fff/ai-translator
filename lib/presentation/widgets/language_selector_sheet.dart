@@ -48,7 +48,7 @@ class _LanguageSelectorSheetState extends ConsumerState<LanguageSelectorSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = ref.watch(themeProvider).accentColor.color;
+    final accent = ref.watch(themeProvider).effectiveAccent;
     final isRu = Localizations.localeOf(context).languageCode == 'ru';
 
     final availableLanguages = widget.isTarget

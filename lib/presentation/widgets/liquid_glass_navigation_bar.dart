@@ -50,6 +50,9 @@ class _LiquidGlassNavigationBarState
   late final AnimationController _slideController;
   double _fromIndex = 0;
   double _toIndex = 0;
+  double _dragStartX = 0;
+  double _dragBaseIndex = 0;
+  bool _isDragging = false;
 
   @override
   void initState() {
@@ -65,7 +68,7 @@ class _LiquidGlassNavigationBarState
   @override
   void didUpdateWidget(covariant LiquidGlassNavigationBar oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.currentIndex != widget.currentIndex) {
+    if (oldWidget.currentIndex != widget.currentIndex && !_isDragging) {
       _fromIndex = _currentIndexValue;
       _toIndex = widget.currentIndex.toDouble();
       final simulation = SpringSimulation(_spring, 0.0, 1.0, 0);
@@ -75,6 +78,38 @@ class _LiquidGlassNavigationBarState
 
   double get _currentIndexValue =>
       _fromIndex + (_toIndex - _fromIndex) * _slideController.value;
+
+  void _onDragStart(DragStartDetails details) {
+    _dragStartX = details.globalPosition.dx;
+    _dragBaseIndex = widget.currentIndex.toDouble();
+    _isDragging = true;
+    _slideController.stop();
+  }
+
+  void _onDragUpdate(DragUpdateDetails details) {
+    final delta = (_dragStartX - details.globalPosition.dx) / 120;
+    final newIndex = (_dragBaseIndex + delta)
+        .clamp(0.0, (widget.items.length - 1).toDouble());
+    _fromIndex = newIndex;
+    _toIndex = newIndex;
+    _slideController.value = 1.0;
+  }
+
+  void _onDragEnd(DragEndDetails details) {
+    _isDragging = false;
+    final velocity = details.velocity.pixelsPerSecond.dx;
+    final current = _fromIndex;
+    final target = (current + (velocity > 0 ? 0.5 : -0.5)).round()
+        .clamp(0, widget.items.length - 1);
+    if (target != widget.currentIndex) {
+      widget.onIndexChanged(target);
+    } else {
+      _fromIndex = widget.currentIndex.toDouble();
+      _toIndex = widget.currentIndex.toDouble();
+      final simulation = SpringSimulation(_spring, 0.0, 1.0, 0);
+      _slideController.animateWith(simulation);
+    }
+  }
 
   @override
   void dispose() {
@@ -87,7 +122,7 @@ class _LiquidGlassNavigationBarState
     final themeState = ref.watch(themeProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final mediaQuery = MediaQuery.of(context);
-    final accent = themeState.accentColor.color;
+    final accent = themeState.effectiveAccent;
     final metrics = _NavMetrics.of(context);
 
     final reduceGlass = themeState.reduceTransparency ||
@@ -96,8 +131,8 @@ class _LiquidGlassNavigationBarState
 
     final blurSigma = themeState.glassBlurSigma;
     final surfaceColor = isDark
-        ? const Color(0xFF1C1C24).withValues(alpha: themeState.glassOpacity)
-        : Colors.white.withValues(alpha: themeState.glassOpacity);
+        ? const Color(0xFF1C1C24).withValues(alpha: (themeState.glassOpacity + 0.15).clamp(0.0, 1.0))
+        : Colors.white.withValues(alpha: (themeState.glassOpacity + 0.15).clamp(0.0, 1.0));
     final borderColor = isDark
         ? Colors.white.withValues(alpha: 0.12)
         : Colors.white.withValues(alpha: 0.55);
@@ -105,13 +140,18 @@ class _LiquidGlassNavigationBarState
         ? Colors.white.withValues(alpha: 0.07)
         : Colors.white.withValues(alpha: 0.18);
 
-    final content = Stack(
-      children: [
-        Positioned.fill(
-          child: _SpecularHighlight(radius: metrics.radius, topColor: specularTop),
-        ),
-        _itemsLayer(metrics, accent, isDark),
-      ],
+    final content = GestureDetector(
+      onHorizontalDragStart: _onDragStart,
+      onHorizontalDragUpdate: _onDragUpdate,
+      onHorizontalDragEnd: _onDragEnd,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: _SpecularHighlight(radius: metrics.radius, topColor: specularTop),
+          ),
+          _itemsLayer(metrics, accent, isDark),
+        ],
+      ),
     );
 
     final decorated = Container(
@@ -369,8 +409,8 @@ class _NavItemButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mutedColor = isDark
-        ? Colors.white.withValues(alpha: 0.55)
-        : const Color(0xFF8E8E93);
+        ? Colors.white.withValues(alpha: 0.70)
+        : const Color(0xFF6B6B70);
     final iconColor = selected ? accent : mutedColor;
     final labelColor = selected ? accent : mutedColor;
 

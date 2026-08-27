@@ -43,14 +43,21 @@ class AuthNotifier extends StateNotifier<UserProfile> {
   static const String _iosClientId =
       '841057078666-7ro3biov52o9sspkr5p7v1mkaejsbu2l.apps.googleusercontent.com';
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: kIsWeb ? _webClientId : _iosClientId,
-  );
+  AuthNotifier() : super(const UserProfile()) {
+    _googleSignIn = GoogleSignIn(
+      clientId: kIsWeb
+          ? _webClientId
+          : defaultTargetPlatform == TargetPlatform.iOS ||
+                  defaultTargetPlatform == TargetPlatform.macOS
+              ? _iosClientId
+              : null, // Android uses google-services.json default
+    );
+  }
+
+  late final GoogleSignIn _googleSignIn;
 
   // Emails that are granted administrator access.
   static const Set<String> adminEmails = {'germangpt3@gmail.com'};
-
-  AuthNotifier() : super(const UserProfile());
 
   /// Returns `null` on success/cancel, otherwise the underlying error message
   /// (e.g. the OAuth failure reason) so the UI can surface it.

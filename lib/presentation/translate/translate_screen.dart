@@ -566,7 +566,21 @@ class _TranslateScreenState extends ConsumerState<TranslateScreen> {
                               const SizedBox(width: 8),
                               GlassIconButton(
                                 icon: CupertinoIcons.share,
-                                onPressed: () => Share.share(trState.translatedText),
+                                onPressed: () async {
+                                  try {
+                                    await Share.share(trState.translatedText);
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(context.l.errorSharing),
+                                          duration: const Duration(seconds: 2),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
                               ),
                             ],
                           ),

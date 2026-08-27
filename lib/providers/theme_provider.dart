@@ -5,15 +5,11 @@ enum BrandAccentColor {
   blue(Color(0xFF007AFF), 'Blue'),
   indigo(Color(0xFF5856D6), 'Indigo'),
   purple(Color(0xFFAF52DE), 'Purple'),
-  teal(Color(0xFF30B0C7), 'Teal'),
-  rose(Color(0xFFFF2D55), 'Rose'),
+  pink(Color(0xFFFF2D55), 'Pink'),
+  red(Color(0xFFFF3B30), 'Red'),
   orange(Color(0xFFFF9500), 'Orange'),
   green(Color(0xFF34C759), 'Green'),
-  cyan(Color(0xFF00C7BE), 'Cyan'),
-  pink(Color(0xFFFF6B9D), 'Pink'),
-  amber(Color(0xFFFFCC02), 'Amber'),
-  red(Color(0xFFFF3B30), 'Red'),
-  mint(Color(0xFF00D68F), 'Mint');
+  teal(Color(0xFF30B0C7), 'Teal');
 
   final Color color;
   final String label;
@@ -26,6 +22,7 @@ class ThemeState {
   final double glassBlurSigma;
   final double glassOpacity;
   final BrandAccentColor accentColor;
+  final bool useDeviceTheme;
 
   ThemeState({
     this.themeMode = ThemeMode.system,
@@ -33,7 +30,18 @@ class ThemeState {
     this.glassBlurSigma = 25.0,
     this.glassOpacity = 0.60,
     this.accentColor = BrandAccentColor.blue,
+    this.useDeviceTheme = false,
   });
+
+  Color get effectiveAccent {
+    if (useDeviceTheme) {
+      return WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+              Brightness.dark
+          ? const Color(0xFF8AB4F8)
+          : const Color(0xFF1A73E8);
+    }
+    return accentColor.color;
+  }
 
   ThemeState copyWith({
     ThemeMode? themeMode,
@@ -41,6 +49,7 @@ class ThemeState {
     double? glassBlurSigma,
     double? glassOpacity,
     BrandAccentColor? accentColor,
+    bool? useDeviceTheme,
   }) {
     return ThemeState(
       themeMode: themeMode ?? this.themeMode,
@@ -48,6 +57,7 @@ class ThemeState {
       glassBlurSigma: glassBlurSigma ?? this.glassBlurSigma,
       glassOpacity: glassOpacity ?? this.glassOpacity,
       accentColor: accentColor ?? this.accentColor,
+      useDeviceTheme: useDeviceTheme ?? this.useDeviceTheme,
     );
   }
 }
@@ -80,7 +90,11 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
   }
 
   void setAccentColor(BrandAccentColor color) {
-    state = state.copyWith(accentColor: color);
+    state = state.copyWith(accentColor: color, useDeviceTheme: false);
+  }
+
+  void setUseDeviceTheme() {
+    state = state.copyWith(useDeviceTheme: true);
   }
 }
 

@@ -11,7 +11,7 @@ Translate text for the right audience and situation. The AI understands *who* yo
 ![Node.js](https://img.shields.io/badge/Node.js-20-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 ![PRs](https://img.shields.io/badge/PRs-welcome-brightgreen?style=for-the-badge)
-![Platforms](https://img.shields.io/badge/iOS%20%7C%20Android%20%7C%20macOS%20%7C%20Web-000000?style=for-the-badge)
+![Platforms](https://img.shields.io/badge/iOS%20%7C%20Android%20%7C%20macOS%20%7C%20Windows%20%7C%20Linux-000000?style=for-the-badge)
 
 </div>
 
@@ -27,7 +27,7 @@ Translate text for the right audience and situation. The AI understands *who* yo
 - 🕘 **Translation history** stored locally in SQLite (Drift), with instant search.
 - 🔒 **Security-first proxy** — Node.js API with rate limiting, prompt-injection filtering and admin ban/incident tooling.
 - 🪪 **Real Google Sign-In** (OAuth 2.0).
-- 🌗 **Light / Dark / System themes** + 5 accent colors.
+- 🌗 **Light / Dark / System themes** + 8 accent colors + device theme.
 - 🌐 **Bilingual**: English (default) and Russian.
 
 ## 📸 Screenshots
@@ -101,7 +101,7 @@ app/
 - Android SDK Command-line Tools
 - Node.js **20+** (for the server)
 - Docker Desktop *(optional — MongoDB)*
-- Google Cloud OAuth **Client ID** for Android / iOS / Web
+- Google Cloud OAuth **Client ID** for Android / iOS
 - DeepSeek **API key** — stored only in `server/.env`
 
 ## 🚀 Getting started

@@ -226,7 +226,7 @@ class LiquidGlassPill extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeState = ref.watch(themeProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = selectedColor ?? themeState.accentColor.color;
+    final accent = selectedColor ?? themeState.effectiveAccent;
     final mediaQuery = MediaQuery.of(context);
     final disableGlass = themeState.reduceTransparency ||
         mediaQuery.accessibleNavigation ||
@@ -393,7 +393,7 @@ class GlassButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeState = ref.watch(themeProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = color ?? themeState.accentColor.color;
+    final accent = color ?? themeState.effectiveAccent;
     final mediaQuery = MediaQuery.of(context);
     final disableGlass = themeState.reduceTransparency ||
         mediaQuery.accessibleNavigation ||

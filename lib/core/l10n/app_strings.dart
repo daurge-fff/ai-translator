@@ -37,6 +37,7 @@ class AppStrings {
   String get resultLabel => t('TRANSLATION RESULT', 'РЕЗУЛЬТАТ ПЕРЕВОДА');
   String get resultPlaceholder => t('The contextual translation will appear here...', 'Здесь появится смысловой перевод, адаптированный под выбранную ситуацию...');
   String get copied => t('Copied to clipboard', 'Скопировано в буфер обмена');
+  String get errorSharing => t('Could not share', 'Не удалось поделиться');
   String get translationError => t('Translation error: ', 'Ошибка перевода: ');
 
   // Language selector
@@ -88,6 +89,9 @@ class AppStrings {
   String get deleteDataMessage => t('All translation history and context templates will be permanently deleted. This action cannot be undone.', 'Вся история переводов и шаблоны контекстов будут безвозвратно удалены. Это действие нельзя отменить.');
   String get delete => t('Delete', 'Удалить');
   String get dataDeleted => t('All data deleted', 'Все данные удалены');
+  String get aboutSection => t('ABOUT', 'О ПРИЛОЖЕНИИ');
+  String get version => t('Version', 'Версия');
+  String get license => t('License', 'Лицензия');
   String get language => t('Language', 'Язык');
 
   // Admin

@@ -380,7 +380,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
     final adminState = ref.watch(adminProvider);
     final themeState = ref.watch(themeProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = themeState.accentColor.color;
+    final accent = themeState.effectiveAccent;
 
     return Scaffold(
       body: Column(

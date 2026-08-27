@@ -19,7 +19,7 @@ class ContextsScreen extends ConsumerWidget {
     final templates = ref.watch(contextsProvider);
     final themeState = ref.watch(themeProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = themeState.accentColor.color;
+    final accent = themeState.effectiveAccent;
 
     return Scaffold(
       body: Padding(

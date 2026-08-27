@@ -68,7 +68,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final themeState = ref.watch(themeProvider);
     final contexts = ref.watch(contextsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = themeState.accentColor.color;
+    final accent = themeState.effectiveAccent;
 
     String contextTitle(String? userContext) {
       if (userContext == null || userContext.isEmpty) return '';
