@@ -8,6 +8,7 @@ class UserProfile {
   final String avatarUrl;
   final bool isAdmin;
   final bool isAuthenticated;
+  final String idToken;
 
   const UserProfile({
     this.email = '',
@@ -15,6 +16,7 @@ class UserProfile {
     this.avatarUrl = '',
     this.isAdmin = false,
     this.isAuthenticated = false,
+    this.idToken = '',
   });
 
   UserProfile copyWith({
@@ -23,6 +25,7 @@ class UserProfile {
     String? avatarUrl,
     bool? isAdmin,
     bool? isAuthenticated,
+    String? idToken,
   }) {
     return UserProfile(
       email: email ?? this.email,
@@ -30,6 +33,7 @@ class UserProfile {
       avatarUrl: avatarUrl ?? this.avatarUrl,
       isAdmin: isAdmin ?? this.isAdmin,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      idToken: idToken ?? this.idToken,
     );
   }
 }
@@ -65,6 +69,7 @@ class AuthNotifier extends StateNotifier<UserProfile> {
     try {
       final account = await _googleSignIn.signIn();
       if (account == null) return null;
+      final auth = await account.authentication;
       state = UserProfile(
         email: account.email,
         displayName: (account.displayName != null &&
@@ -74,6 +79,7 @@ class AuthNotifier extends StateNotifier<UserProfile> {
         avatarUrl: account.photoUrl ?? '',
         isAdmin: adminEmails.contains(account.email.toLowerCase()),
         isAuthenticated: true,
+        idToken: auth.idToken ?? '',
       );
       return null;
     } catch (e) {

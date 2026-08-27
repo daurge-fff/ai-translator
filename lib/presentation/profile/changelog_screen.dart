@@ -209,7 +209,8 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
   String _formatDate(String iso) {
     try {
       final dt = DateTime.parse(iso).toLocal();
-      return DateFormat('d MMMM yyyy', 'ru').format(dt);
+      final locale = Localizations.localeOf(context).languageCode;
+      return DateFormat('d MMMM yyyy', locale).format(dt);
     } catch (_) {
       return iso;
     }
@@ -218,7 +219,8 @@ class _ChangelogScreenState extends State<ChangelogScreen> {
   String _formatShortDate(String iso) {
     try {
       final dt = DateTime.parse(iso).toLocal();
-      return DateFormat('d MMM', 'ru').format(dt);
+      final locale = Localizations.localeOf(context).languageCode;
+      return DateFormat('d MMM', locale).format(dt);
     } catch (_) {
       return '';
     }

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' as drift;
 import '../data/local/database.dart';
 import '../data/remote/api_client.dart';
+import 'admin_provider.dart';
+import 'auth_provider.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) => AppDatabase());
 final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
@@ -157,16 +159,42 @@ class TranslationNotifier extends StateNotifier<TranslationState> {
         );
       }
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: 'Ошибка перевода: ${e.toString().replaceAll('Exception: ', '')}',
-      );
+      final ban = BanInfo.tryParse(e);
+      if (ban != null) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: _formatBanMessage(ban),
+        );
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: 'Translation error: ${e.toString().replaceAll('Exception: ', '')}',
+        );
+      }
     }
+  }
+
+  String _formatBanMessage(BanInfo ban) {
+    if (ban.isPermanent) {
+      return 'Вы заблокированы навсегда.\n\nПричина: ${ban.reason.isEmpty ? 'нарушение правил' : ban.reason}';
+    }
+    final expires = ban.expiresAtDate?.toLocal();
+    final daysLeft = expires != null ? (expires.difference(DateTime.now()).inDays) : null;
+    final when = daysLeft != null && daysLeft > 0
+        ? 'через $daysLeft дн.'
+        : expires != null
+            ? '${expires.day}.${expires.month}.${expires.year} в ${expires.hour}:${expires.minute.toString().padLeft(2, '0')}'
+            : 'скоро';
+    return 'Вы временно заблокированы.\n\nСрок: до $when\nПричина: ${ban.reason.isEmpty ? 'нарушение правил' : ban.reason}';
   }
 }
 
 final translationProvider = StateNotifierProvider<TranslationNotifier, TranslationState>((ref) {
   final apiClient = ref.watch(apiClientProvider);
   final db = ref.watch(databaseProvider);
+  // Sync auth token to API client
+  ref.listen(authProvider, (prev, next) {
+    apiClient.setIdToken(next.idToken.isNotEmpty ? next.idToken : null);
+  }, fireImmediately: true);
   return TranslationNotifier(apiClient, db);
 });

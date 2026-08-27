@@ -165,6 +165,8 @@ class AppStrings {
   String get appInfoUpToDate => t('Up to date', 'Последняя версия');
   String get appInfoUpdateAvailable => t('Update available', 'Доступно обновление');
   String get serverUnavailable => t('Server unavailable', 'Сервер недоступен');
+  String get incidentTitle => t('Incident', 'Инцидент');
+  String get translationErrorPrefix => t('Translation error: ', 'Ошибка перевода: ');
 }
 
 extension AppStringsContext on BuildContext {

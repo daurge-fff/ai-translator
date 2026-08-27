@@ -51,9 +51,11 @@ class _TranslateScreenState extends ConsumerState<TranslateScreen> {
 
   Future<void> _speakText(String text, String langCode) async {
     if (text.isEmpty) return;
-    final ttsCode = _ttsLocale(langCode);
-    await _flutterTts.setLanguage(ttsCode);
-    await _flutterTts.speak(text);
+    try {
+      final ttsCode = _ttsLocale(langCode);
+      await _flutterTts.setLanguage(ttsCode);
+      await _flutterTts.speak(text);
+    } catch (_) {}
   }
 
   String _ttsLocale(String code) {

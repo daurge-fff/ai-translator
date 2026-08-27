@@ -52,7 +52,7 @@ class NotificationService {
 
   Future<List<AppNotification>> getNotifications() async {
     try {
-      final response = await _dio.get('/api/notifications');
+      final response = await _dio.get(ApiConstants.notificationsEndpoint);
       final data = response.data['notifications'] as List? ?? [];
       return data.map((e) => AppNotification.fromJson(e as Map<String, dynamic>)).toList();
     } catch (_) {
@@ -62,7 +62,7 @@ class NotificationService {
 
   Future<void> markAsRead(String id) async {
     try {
-      await _dio.post('/api/notifications/$id/read');
+      await _dio.post('${ApiConstants.notificationsEndpoint}/$id/read');
     } catch (_) {}
   }
 
@@ -74,7 +74,7 @@ class NotificationService {
     String? targetDeviceId,
   }) async {
     try {
-      await _dio.post('/api/notifications/send', data: {
+      await _dio.post(ApiConstants.notificationsSendEndpoint, data: {
         'title': title,
         'body': body,
         if (targetEmail != null) 'targetEmail': targetEmail,
@@ -89,7 +89,7 @@ class NotificationService {
   // Admin: get all notifications
   Future<List<AppNotification>> getAllNotifications() async {
     try {
-      final response = await _dio.get('/api/notifications/all');
+      final response = await _dio.get(ApiConstants.notificationsAllEndpoint);
       final data = response.data['notifications'] as List? ?? [];
       return data.map((e) => AppNotification.fromJson(e as Map<String, dynamic>)).toList();
     } catch (_) {
@@ -100,7 +100,7 @@ class NotificationService {
   // Admin: delete notification
   Future<void> deleteNotification(String id) async {
     try {
-      await _dio.delete('/api/notifications/$id');
+      await _dio.delete('${ApiConstants.notificationsEndpoint}/$id');
     } catch (_) {}
   }
 }

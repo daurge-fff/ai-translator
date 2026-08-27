@@ -91,9 +91,9 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
                         const Icon(CupertinoIcons.exclamationmark_shield_fill,
                             color: AppColors.danger, size: 22),
                         const SizedBox(width: 10),
-                        const Expanded(
-                          child: Text('Инцидент',
-                              style: TextStyle(
+                        Expanded(
+                          child: Text(context.l.incidentTitle,
+                              style: const TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold)),
                         ),
                       ],
@@ -373,7 +373,9 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
                 warningMessage: warningController.text,
                 expiresAt: expiration,
               );
+              if (!mounted) return;
               Navigator.pop(context);
+              if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('${context.l.blocked}$banValue'),
@@ -398,6 +400,8 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
   Widget _banTypeChip(String value, String label, IconData icon, String current,
       StateSetter setInner, ValueChanged<String> onSelected) {
     final sel = current == value;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
     return GestureDetector(
       onTap: () => setInner(() => onSelected(value)),
       child: Container(
@@ -408,7 +412,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-              color: sel ? AppColors.primaryBlue : AppColors.lightSystemGray4),
+              color: sel ? AppColors.primaryBlue : AppColors.separator(isDark)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -430,6 +434,8 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
   Widget _durationChip(String label, double value, double current,
       StateSetter setInner, ValueChanged<double> onSelected) {
     final sel = current == value;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
     return GestureDetector(
       onTap: () => setInner(() => onSelected(value)),
       child: Container(
@@ -440,7 +446,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-              color: sel ? AppColors.warning : AppColors.lightSystemGray4),
+              color: sel ? AppColors.warning : AppColors.separator(isDark)),
         ),
         child: Text(label,
             style: TextStyle(

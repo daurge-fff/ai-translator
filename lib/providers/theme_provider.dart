@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum BrandAccentColor {
   blue(Color(0xFF007AFF), 'Blue'),
@@ -63,7 +64,37 @@ class ThemeState {
 }
 
 class ThemeNotifier extends StateNotifier<ThemeState> {
-  ThemeNotifier() : super(ThemeState());
+  ThemeNotifier() : super(ThemeState()) {
+    _load();
+  }
+
+  static const _kThemeMode = 'theme_mode';
+  static const _kReduceTransparency = 'reduce_transparency';
+  static const _kAccentIndex = 'accent_index';
+  static const _kUseDeviceTheme = 'use_device_theme';
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final modeIndex = prefs.getInt(_kThemeMode) ?? 0;
+    final accentIndex = prefs.getInt(_kAccentIndex) ?? 0;
+    final useDevice = prefs.getBool(_kUseDeviceTheme) ?? false;
+    final reduce = prefs.getBool(_kReduceTransparency) ?? false;
+
+    state = state.copyWith(
+      themeMode: ThemeMode.values[modeIndex.clamp(0, ThemeMode.values.length - 1)],
+      accentColor: BrandAccentColor.values[accentIndex.clamp(0, BrandAccentColor.values.length - 1)],
+      useDeviceTheme: useDevice,
+      reduceTransparency: reduce,
+    );
+  }
+
+  Future<void> _save() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_kThemeMode, state.themeMode.index);
+    await prefs.setInt(_kAccentIndex, state.accentColor.index);
+    await prefs.setBool(_kUseDeviceTheme, state.useDeviceTheme);
+    await prefs.setBool(_kReduceTransparency, state.reduceTransparency);
+  }
 
   void toggleTheme() {
     if (state.themeMode == ThemeMode.dark) {
@@ -71,14 +102,17 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
     } else {
       state = state.copyWith(themeMode: ThemeMode.dark);
     }
+    _save();
   }
 
   void setThemeMode(ThemeMode mode) {
     state = state.copyWith(themeMode: mode);
+    _save();
   }
 
   void toggleReduceTransparency() {
     state = state.copyWith(reduceTransparency: !state.reduceTransparency);
+    _save();
   }
 
   void setGlassBlurSigma(double sigma) {
@@ -91,10 +125,12 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
 
   void setAccentColor(BrandAccentColor color) {
     state = state.copyWith(accentColor: color, useDeviceTheme: false);
+    _save();
   }
 
   void setUseDeviceTheme() {
     state = state.copyWith(useDeviceTheme: true);
+    _save();
   }
 }
 

@@ -36,13 +36,16 @@ export function injectionFilterMiddleware(req, res, next) {
       ip: req.ip || req.headers['x-forwarded-for'] || '127.0.0.1',
       snippet: textToCheck.slice(0, 100),
       pattern: matchedPattern,
-      severity: 'medium'
+      severity: 'high'
     };
     securityIncidentsLog.unshift(incident);
     if (securityIncidentsLog.length > 100) securityIncidentsLog.pop();
 
-    console.warn(`[SECURITY ALERT] Suspicious prompt injection pattern detected from ${req.user?.email}: ${matchedPattern}`);
-    req.isSuspiciousPrompt = true;
+    console.warn(`[SECURITY BLOCKED] ${req.user?.email}: ${matchedPattern}`);
+    return res.status(403).json({
+      error: 'Request blocked: suspicious content detected',
+      code: 'INJECTION_DETECTED'
+    });
   }
 
   next();

@@ -1,6 +1,40 @@
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/remote/api_client.dart';
 import 'translation_provider.dart';
+
+class BanInfo {
+  final String reason;
+  final String warningMessage;
+  final String? expiresAt;
+
+  BanInfo({this.reason = '', this.warningMessage = '', this.expiresAt});
+
+  DateTime? get expiresAtDate {
+    if (expiresAt == null || expiresAt!.isEmpty) return null;
+    return DateTime.tryParse(expiresAt!);
+  }
+
+  bool get isPermanent => expiresAt == null || expiresAt!.isEmpty;
+
+  static BanInfo? tryParse(Object error) {
+    final s = error.toString();
+    if (!s.contains('403')) return null;
+    try {
+      final match = RegExp(r'Response body: (.+)').firstMatch(s);
+      if (match == null) return null;
+      final json = jsonDecode(match.group(1)!) as Map<String, dynamic>;
+      if (json['reason'] == null && json['warningMessage'] == null) return null;
+      return BanInfo(
+        reason: json['reason'] ?? '',
+        warningMessage: json['warningMessage'] ?? '',
+        expiresAt: json['expiresAt'],
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+}
 
 class SecurityIncident {
   final String id;

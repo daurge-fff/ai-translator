@@ -16,6 +16,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3214;
 
+// Trust nginx reverse proxy for correct client IPs in rate limiting
+app.set('trust proxy', 1);
+
 // Enable CORS & JSON parsing
 app.use(cors({
   origin: (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean),
@@ -52,6 +55,12 @@ app.use('/api/translate', translateRouter);
 app.use('/api/config', configRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/notifications', notificationsRouter);
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('[ERROR]', err.message);
+  res.status(500).json({ error: 'Internal server error' });
+});
 
 // Optional MongoDB Atlas connection
 const mongoUri = process.env.MONGO_URI;

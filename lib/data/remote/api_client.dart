@@ -4,6 +4,7 @@ import '../../core/device/device_id.dart';
 
 class ApiClient {
   late final Dio _dio;
+  String? _idToken;
 
   ApiClient() {
     _dio = Dio(
@@ -13,7 +14,6 @@ class ApiClient {
         receiveTimeout: const Duration(seconds: 30),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer mock-token',
         },
       ),
     );
@@ -23,6 +23,9 @@ class ApiClient {
         onRequest: (options, handler) async {
           final deviceId = await DeviceIdManager.getDeviceId();
           options.headers['x-device-id'] = deviceId;
+          if (_idToken != null) {
+            options.headers['Authorization'] = 'Bearer $_idToken';
+          }
           return handler.next(options);
         },
         onError: (DioException e, handler) {
@@ -30,6 +33,10 @@ class ApiClient {
         },
       ),
     );
+  }
+
+  void setIdToken(String? token) {
+    _idToken = token;
   }
 
   Future<Map<String, dynamic>> translate({
