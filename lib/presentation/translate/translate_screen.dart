@@ -6,6 +6,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../core/layout.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/constants/languages.dart';
 import '../../core/theme/app_colors.dart';
@@ -186,7 +187,8 @@ class _TranslateScreenState extends ConsumerState<TranslateScreen> {
           // Header Bar
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+              padding: EdgeInsets.fromLTRB(
+                  20, contentTopInset(context), 20, 12),
                 child: Column(
                   children: [
                     // Title Bar

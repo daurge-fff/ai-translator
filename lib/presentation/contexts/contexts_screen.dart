@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../core/layout.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/liquid_glass.dart';
@@ -23,7 +24,8 @@ class ContextsScreen extends ConsumerWidget {
 
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+        padding: EdgeInsets.fromLTRB(
+            20, contentTopInset(context), 20, 0),
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

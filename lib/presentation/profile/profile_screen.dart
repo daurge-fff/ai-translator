@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/layout.dart';
 import '../../core/l10n/app_strings.dart';
 import '../../core/l10n/locale_provider.dart';
 import '../../core/theme/app_colors.dart';
@@ -60,7 +61,7 @@ class ProfileScreen extends ConsumerWidget {
     return Scaffold(
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+        padding: EdgeInsets.fromLTRB(20, contentTopInset(context), 20, 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

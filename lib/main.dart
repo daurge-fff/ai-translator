@@ -128,15 +128,9 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell>
         child: Stack(
           children: [
             Positioned.fill(
-              child: SafeArea(
-                // Respect the top safe area (status bar / Dynamic Island) on
-                // all platforms, while the nav bar handles its own bottom inset.
-                top: true,
-                bottom: false,
-                child: IndexedStack(
-                  index: _currentIndex >= screens.length ? 0 : _currentIndex,
-                  children: screens,
-                ),
+              child: IndexedStack(
+                index: _currentIndex >= screens.length ? 0 : _currentIndex,
+                children: screens,
               ),
             ),
             Positioned(
